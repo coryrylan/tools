@@ -141,3 +141,10 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# wireit
+.wireit/
+
+# Vale style packages downloaded by `vale sync` (source-of-truth is .vale.ini)
+projects/lib/src/vale/styles/Google/
+projects/lib/src/vale/styles/write-good/
