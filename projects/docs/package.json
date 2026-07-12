@@ -1,0 +1,74 @@
+{
+  "name": "docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "eleventy --serve --port=8083",
+    "build": "wireit",
+    "lint": "wireit",
+    "lint:fix": "eslint -c ./eslint.config.js --fix",
+    "ci": "wireit",
+    "clean": "rm -rf dist .eslintcache"
+  },
+  "dependencies": {
+    "@nvidia-elements/code": "2.0.1",
+    "@nvidia-elements/core": "2.1.0",
+    "@nvidia-elements/styles": "2.1.0",
+    "@nvidia-elements/themes": "2.0.0"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "3.1.6",
+    "@11ty/eleventy-plugin-vite": "8.0.0",
+    "@coryrylan/tools": "workspace:*",
+    "@nvidia-elements/lint": "2.0.1",
+    "eslint": "10.7.0",
+    "markdown-it": "14.3.0",
+    "wireit": "0.14.13"
+  },
+  "wireit": {
+    "build": {
+      "command": "eleventy",
+      "dependencies": [
+        "../lib:test",
+        "../lib:lint"
+      ],
+      "files": [
+        "src/**",
+        "eleventy.config.js",
+        "rule-docs.js",
+        "surface-docs.js",
+        "doc-utils.js",
+        "package.json",
+        "../lib/src/*/docs/**",
+        "../lib/package.json"
+      ],
+      "output": [
+        "dist/**"
+      ],
+      "env": {
+        "PAGES_BASE_URL": {
+          "external": true
+        }
+      }
+    },
+    "lint": {
+      "command": "eslint -c ./eslint.config.js --color --cache --cache-location .eslintcache/",
+      "files": [
+        "src/**",
+        "eleventy.config.js",
+        "rule-docs.js",
+        "surface-docs.js",
+        "doc-utils.js",
+        "eslint.config.js",
+        "package.json"
+      ],
+      "output": []
+    },
+    "ci": {
+      "dependencies": [
+        "lint",
+        "build"
+      ]
+    }
+  }
+}

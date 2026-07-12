@@ -1,0 +1,32 @@
+name: Release
+on:
+  push:
+    branches:
+      - main
+
+# Queue, never cancel — a second push racing an in-flight npm publish must wait
+concurrency: release
+
+jobs:
+  release:
+    name: Release
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+      # npm trusted publishing exchanges the job's OIDC token for registry auth
+      # and mints the provenance attestation — no NPM_TOKEN secret involved
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # semantic-release resolves the previous release from tags — shallow clones see none
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-ci
+      - run: pnpm run ci
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: WIREIT_PARALLEL=1 WIREIT_LOGGER=metrics pnpm run release

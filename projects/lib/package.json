@@ -1,0 +1,200 @@
+{
+  "name": "@coryrylan/tools",
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "description": "Shared ESLint, Prettier, Stylelint, Vale, Vite, and Vitest configs - plus custom lint rules - for keeping codebases maintainable when coding agents are the primary contributors.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coryrylan/tools.git",
+    "directory": "projects/lib"
+  },
+  "author": "Cory Rylan (https://coryrylan.com)",
+  "bugs": {
+    "url": "https://github.com/coryrylan/tools/issues"
+  },
+  "homepage": "https://github.com/coryrylan/tools/tree/main/projects/lib#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "package.json"
+  ],
+  "exports": {
+    "./eslint": {
+      "types": "./dist/eslint/index.d.ts",
+      "default": "./dist/eslint/index.js"
+    },
+    "./prettier": {
+      "types": "./dist/prettier/index.d.ts",
+      "default": "./dist/prettier/index.js"
+    },
+    "./stylelint": {
+      "types": "./dist/stylelint/index.d.ts",
+      "default": "./dist/stylelint/index.js"
+    },
+    "./vite": {
+      "types": "./dist/vite/index.d.ts",
+      "default": "./dist/vite/index.js"
+    },
+    "./vite/plugins/write-if-changed": {
+      "types": "./dist/vite/plugins/write-if-changed.d.ts",
+      "default": "./dist/vite/plugins/write-if-changed.js"
+    },
+    "./vite/plugins/dts": {
+      "types": "./dist/vite/plugins/dts.d.ts",
+      "default": "./dist/vite/plugins/dts.js"
+    },
+    "./vitest": {
+      "types": "./dist/vitest/index.d.ts",
+      "default": "./dist/vitest/index.js"
+    },
+    "./vitest/browser": {
+      "types": "./dist/vitest/browser.d.ts",
+      "default": "./dist/vitest/browser.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "ci": "wireit",
+    "typecheck": "wireit",
+    "build": "wireit",
+    "test": "wireit",
+    "lint": "wireit"
+  },
+  "peerDependencies": {
+    "@eslint/js": ">=9",
+    "@eslint/json": ">=0.13.0",
+    "@html-eslint/eslint-plugin": ">=0.61.0",
+    "@html-eslint/parser": ">=0.61.0",
+    "@vitest/browser-playwright": ">=4.0.0",
+    "@vitest/coverage-istanbul": ">=4.0.0",
+    "eslint": ">=9",
+    "eslint-plugin-jsdoc": ">=60.0.0",
+    "playwright": ">=1.50.0",
+    "prettier": ">=3.0.0",
+    "stylelint": ">=17.0.0",
+    "stylelint-config-standard": ">=40.0.0",
+    "typescript": ">=5.5.0 <6.1.0",
+    "typescript-eslint": ">=8.40.0",
+    "vite": ">=8.0.0",
+    "vitest": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@vitest/browser-playwright": {
+      "optional": true
+    },
+    "@vitest/coverage-istanbul": {
+      "optional": true
+    },
+    "playwright": {
+      "optional": true
+    },
+    "prettier": {
+      "optional": true
+    },
+    "stylelint": {
+      "optional": true
+    },
+    "stylelint-config-standard": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    },
+    "vitest": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@eslint/json": "2.0.1",
+    "@html-eslint/eslint-plugin": "0.61.0",
+    "@html-eslint/parser": "0.61.0",
+    "@types/estree": "1.0.9",
+    "@types/node": "26.1.1",
+    "@vitest/browser-playwright": "4.1.10",
+    "@vitest/coverage-istanbul": "4.1.10",
+    "eslint": "10.7.0",
+    "eslint-plugin-jsdoc": "63.0.13",
+    "playwright": "1.61.1",
+    "prettier": "3.9.5",
+    "stylelint": "17.14.0",
+    "stylelint-config-standard": "40.0.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.63.0",
+    "typescript-go": "npm:typescript@7.0.2",
+    "vite": "8.1.4",
+    "vitest": "4.1.10",
+    "wireit": "0.14.13"
+  },
+  "wireit": {
+    "ci": {
+      "dependencies": [
+        "typecheck",
+        "build",
+        "test",
+        "lint"
+      ]
+    },
+    "typecheck": {
+      "command": "node ./node_modules/typescript-go/bin/tsc -p tsconfig.json --noEmit && node ./node_modules/typescript-go/bin/tsc -p tsconfig.node.json --noEmit",
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "tsconfig.node.json",
+        "vite.config.ts",
+        "vitest.config.ts"
+      ],
+      "output": []
+    },
+    "build": {
+      "command": "vite build && node ./node_modules/typescript-go/bin/tsc -p tsconfig.build.json",
+      "dependencies": [
+        "typecheck"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "src/vale/vale.ini",
+        "src/vale/styles/config/**",
+        "vite.config.ts",
+        "tsconfig.json",
+        "tsconfig.build.json"
+      ],
+      "output": [
+        "dist/**"
+      ]
+    },
+    "test": {
+      "command": "vitest run",
+      "dependencies": [
+        "typecheck"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "src/vale/vale.ini",
+        "src/vale/styles/config/**",
+        "vitest.config.ts"
+      ],
+      "output": []
+    },
+    "lint": {
+      "command": "eslint .",
+      "dependencies": [
+        "build"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "../../eslint.config.js"
+      ],
+      "output": []
+    }
+  }
+}

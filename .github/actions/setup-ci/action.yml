@@ -1,0 +1,37 @@
+name: Setup CI dependencies
+description: Install the mise toolchain and workspace dependencies for CI jobs.
+
+runs:
+  using: composite
+  steps:
+    - uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d
+      with:
+        version: 2026.6.14
+        install: true
+        cache: true
+    - name: Resolve pnpm store path
+      id: pnpm-store
+      shell: bash
+      run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+    - name: Cache pnpm store
+      uses: actions/cache@v5
+      with:
+        path: ${{ steps.pnpm-store.outputs.path }}
+        key: ${{ runner.os }}-${{ runner.arch }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}-v1
+        restore-keys: ${{ runner.os }}-${{ runner.arch }}-pnpm-store-
+    - uses: google/wireit@setup-github-actions-caching/v2
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
+    - name: Cache Vale style packages
+      id: vale-styles
+      uses: actions/cache@v5
+      with:
+        path: |
+          projects/lib/src/vale/styles/Google
+          projects/lib/src/vale/styles/write-good
+        key: ${{ runner.os }}-vale-styles-${{ hashFiles('.vale.ini') }}
+    - name: Sync Vale style packages
+      if: steps.vale-styles.outputs.cache-hit != 'true'
+      shell: bash
+      run: vale sync

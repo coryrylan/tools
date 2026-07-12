@@ -1,0 +1,13 @@
+dist/
+coverage/
+.wireit/
+.eslintcache/
+pnpm-lock.yaml
+mise.lock
+LICENSE
+
+# Eleventy JS-object frontmatter is not YAML; prettier cannot parse it.
+projects/docs/src/**/*.md
+
+# Vale style assets, including third-party packages downloaded by `vale sync`.
+projects/lib/src/vale/styles/

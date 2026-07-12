@@ -1,0 +1,106 @@
+{
+  "name": "@coryrylan/tools-monorepo",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.15.0",
+  "scripts": {
+    "ci": "wireit",
+    "lint": "wireit",
+    "format": "wireit",
+    "format:fix": "prettier --write .",
+    "lint:styles": "wireit",
+    "lint:vale": "wireit",
+    "release": "wireit",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "21.2.0",
+    "@commitlint/config-conventional": "21.2.0",
+    "@coryrylan/tools": "workspace:*",
+    "@semantic-release/changelog": "6.0.3",
+    "@semantic-release/commit-analyzer": "13.0.1",
+    "@semantic-release/exec": "7.1.0",
+    "@semantic-release/git": "10.0.1",
+    "@semantic-release/github": "12.0.9",
+    "@semantic-release/release-notes-generator": "14.1.1",
+    "conventional-changelog-conventionalcommits": "9.3.1",
+    "eslint": "10.7.0",
+    "husky": "9.1.7",
+    "prettier": "3.9.5",
+    "semantic-release": "25.0.5",
+    "stylelint": "17.14.0",
+    "stylelint-config-standard": "40.0.0",
+    "wireit": "0.14.13"
+  },
+  "wireit": {
+    "ci": {
+      "dependencies": [
+        "./projects/lib:ci",
+        "./projects/docs:ci",
+        "format",
+        "lint",
+        "lint:styles",
+        "lint:vale"
+      ]
+    },
+    "lint": {
+      "command": "eslint .",
+      "dependencies": [
+        "./projects/lib:build"
+      ],
+      "files": [
+        "projects/*/src/**",
+        "eslint.config.js",
+        "release.config.js",
+        "projects/lib/release.config.js"
+      ],
+      "output": []
+    },
+    "release": {
+      "command": "cd projects/lib && HUSKY=0 pnpm exec semantic-release"
+    },
+    "format": {
+      "command": "prettier --check .",
+      "dependencies": [
+        "./projects/lib:build"
+      ],
+      "files": [
+        "**/*.{js,cjs,mjs,ts,mts,cts,json,md,yml,yaml,css,html,svg}",
+        "prettier.config.js",
+        ".prettierignore",
+        "!**/node_modules/**",
+        "!**/dist/**",
+        "!**/.wireit/**",
+        "!**/coverage/**",
+        "!projects/lib/src/vale/styles/**"
+      ],
+      "output": []
+    },
+    "lint:styles": {
+      "command": "stylelint 'projects/*/src/**/*.css'",
+      "dependencies": [
+        "./projects/lib:build"
+      ],
+      "files": [
+        "projects/*/src/**/*.css",
+        "stylelint.config.js"
+      ],
+      "output": []
+    },
+    "lint:vale": {
+      "command": "vale --config=.vale.ini --glob='*.md' README.md projects/lib/README.md projects/docs/README.md projects/lib/src/eslint/docs projects/lib/src/prettier/docs projects/lib/src/stylelint/docs projects/lib/src/vite/docs projects/lib/src/vitest/docs projects/lib/src/vale/docs projects/docs/src",
+      "files": [
+        ".vale.ini",
+        "README.md",
+        "projects/*/README.md",
+        "projects/lib/src/**/*.md",
+        "projects/docs/src/**/*.md",
+        "projects/lib/src/vale/styles/**"
+      ],
+      "output": []
+    }
+  }
+}

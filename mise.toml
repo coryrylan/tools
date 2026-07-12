@@ -1,0 +1,27 @@
+[settings]
+lockfile = true
+npm.package_manager = "pnpm"
+
+[tools]
+node = "26.5.0"
+pnpm = "11.15.0"
+vale = "3.15.1"
+
+[tasks.clean]
+run = [
+  "git clean -dfX"
+]
+
+[tasks.install]
+run = [
+  "mise install",
+  "mise exec -- pnpm i --frozen-lockfile --prefer-offline",
+  "mise exec -- vale sync",
+]
+
+[tasks.setup]
+run = [
+  "mise run clean",
+  "mise run install",
+  "pnpm run ci",
+]
