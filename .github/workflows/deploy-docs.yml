@@ -32,7 +32,7 @@ jobs:
       - run: pnpm -F docs run build
         env:
           PAGES_BASE_URL: /tools/
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v3
         with:
           path: projects/docs/dist
