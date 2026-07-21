@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
-  "description": "Shared ESLint, Prettier, Stylelint, Vale, Vite, and Vitest configs - plus custom lint rules - for keeping codebases maintainable when coding agents are the primary contributors.",
+  "description": "Shared ESLint, Prettier, Stylelint, Vale, Vite, and Vitest configs, custom lint rules, and pi coding-agent extensions - for keeping codebases maintainable when coding agents are the primary contributors.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/coryrylan/tools.git",
@@ -60,7 +60,29 @@
       "types": "./dist/vitest/browser.d.ts",
       "default": "./dist/vitest/browser.js"
     },
+    "./pi/greeting": {
+      "types": "./dist/pi/greeting/index.d.ts",
+      "default": "./dist/pi/greeting/index.js"
+    },
+    "./pi/audio-summary": {
+      "types": "./dist/pi/audio-summary/index.d.ts",
+      "default": "./dist/pi/audio-summary/index.js"
+    },
+    "./pi/hooks": {
+      "types": "./dist/pi/hooks/index.d.ts",
+      "default": "./dist/pi/hooks/index.js"
+    },
     "./package.json": "./package.json"
+  },
+  "keywords": [
+    "pi-package"
+  ],
+  "pi": {
+    "extensions": [
+      "./dist/pi/greeting/index.js",
+      "./dist/pi/audio-summary/index.js",
+      "./dist/pi/hooks/index.js"
+    ]
   },
   "scripts": {
     "ci": "wireit",
@@ -70,6 +92,8 @@
     "lint": "wireit"
   },
   "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
     "@eslint/js": ">=9",
     "@eslint/json": ">=0.13.0",
     "@html-eslint/eslint-plugin": ">=0.61.0",
@@ -82,12 +106,19 @@
     "prettier": ">=3.0.0",
     "stylelint": ">=17.0.0",
     "stylelint-config-standard": ">=40.0.0",
+    "typebox": "*",
     "typescript": ">=5.5.0 <6.1.0",
     "typescript-eslint": ">=8.40.0",
     "vite": ">=8.0.0",
     "vitest": ">=4.0.0"
   },
   "peerDependenciesMeta": {
+    "@earendil-works/pi-ai": {
+      "optional": true
+    },
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
     "@vitest/browser-playwright": {
       "optional": true
     },
@@ -106,6 +137,9 @@
     "stylelint-config-standard": {
       "optional": true
     },
+    "typebox": {
+      "optional": true
+    },
     "vite": {
       "optional": true
     },
@@ -114,6 +148,8 @@
     }
   },
   "devDependencies": {
+    "@earendil-works/pi-ai": "0.80.10",
+    "@earendil-works/pi-coding-agent": "0.80.10",
     "@eslint/js": "10.0.1",
     "@eslint/json": "2.0.1",
     "@html-eslint/eslint-plugin": "0.61.0",
@@ -128,6 +164,7 @@
     "prettier": "3.9.5",
     "stylelint": "17.14.0",
     "stylelint-config-standard": "40.0.0",
+    "typebox": "1.1.38",
     "typescript": "6.0.3",
     "typescript-eslint": "8.63.0",
     "typescript-go": "npm:typescript@7.0.2",

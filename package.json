@@ -91,7 +91,7 @@
       "output": []
     },
     "lint:vale": {
-      "command": "vale --config=.vale.ini --glob='*.md' README.md projects/lib/README.md projects/docs/README.md projects/lib/src/eslint/docs projects/lib/src/prettier/docs projects/lib/src/stylelint/docs projects/lib/src/vite/docs projects/lib/src/vitest/docs projects/lib/src/vale/docs projects/docs/src",
+      "command": "vale --config=.vale.ini --glob='*.md' README.md projects/lib/README.md projects/docs/README.md projects/lib/src/eslint/docs projects/lib/src/prettier/docs projects/lib/src/stylelint/docs projects/lib/src/vite/docs projects/lib/src/vitest/docs projects/lib/src/vale/docs projects/lib/src/pi/docs projects/docs/src",
       "files": [
         ".vale.ini",
         "README.md",

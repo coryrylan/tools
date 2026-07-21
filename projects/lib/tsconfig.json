@@ -15,7 +15,12 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "erasableSyntaxOnly": true,
-    "skipLibCheck": false,
+    // @anthropic-ai/sdk (via @earendil-works/pi-ai) ships intentionally broken
+    // relative undici-types imports suppressed with a same-line @ts-ignore that
+    // typescript-go does not honor (https://github.com/microsoft/typescript-go),
+    // and @google/genai imports @modelcontextprotocol/sdk without declaring it.
+    // Source files remain fully checked; only third-party .d.ts checking is skipped.
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src"]

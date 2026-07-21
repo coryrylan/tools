@@ -63,6 +63,7 @@ Rollup('s)?
 Rylan
 semver
 SSR
+stdin
 Stylelint
 stylesheet(s)?
 subclass(ers|es|ing)?

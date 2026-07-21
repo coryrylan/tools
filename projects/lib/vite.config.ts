@@ -13,7 +13,10 @@ export default defineConfig(
         'vite/plugins/write-if-changed': 'src/vite/plugins/write-if-changed.ts',
         'vite/plugins/dts': 'src/vite/plugins/dts.ts',
         'vitest/index': 'src/vitest/index.ts',
-        'vitest/browser': 'src/vitest/browser.ts'
+        'vitest/browser': 'src/vitest/browser.ts',
+        'pi/greeting/index': 'src/pi/greeting/index.ts',
+        'pi/audio-summary/index': 'src/pi/audio-summary/index.ts',
+        'pi/hooks/index': 'src/pi/hooks/index.ts'
       }
     }),
     {

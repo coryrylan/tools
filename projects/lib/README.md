@@ -30,6 +30,9 @@ with a deterministic check or preset that gates the diff instead.
 | `@coryrylan/tools/vitest`                        | `nodeTestConfig` preset for node-environment unit tests.                         |
 | `@coryrylan/tools/vitest/browser`                | `browserTestConfig` preset for browser-mode (Playwright Chromium) tests.         |
 | `dist/vale/`                                     | Vale starter kit: ini template plus shared accept/reject vocabulary.             |
+| `@coryrylan/tools/pi/greeting`                   | Pi extension - speaks a greeting via macOS `say` on session start.               |
+| `@coryrylan/tools/pi/audio-summary`              | Pi extension - speaks a short summary of each agent turn.                        |
+| `@coryrylan/tools/pi/hooks`                      | Pi extension - Claude-Code-style lifecycle hooks from `.agents/hooks.json`.      |
 
 ## ESLint
 
@@ -164,6 +167,19 @@ browser-mode tests (requires the optional `@vitest/browser-playwright`,
 gated at 90% across lines, branches, functions, and statements. See
 [src/vitest/docs](./src/vitest/docs/index.md).
 
+## Pi extensions
+
+```sh
+pi install npm:@coryrylan/tools
+```
+
+Three [pi](https://pi.dev) coding-agent extensions, shipped as a pi package
+(`pi` manifest key in `package.json`, `pi-package` keyword): `greeting`,
+`audio-summary`, and `hooks`. Pi provides
+`@earendil-works/pi-ai`/`@earendil-works/pi-coding-agent`/`typebox` at
+runtime, so there is nothing extra to install. See
+[src/pi/docs](./src/pi/docs/index.md).
+
 ## Peer dependencies
 
 Every peer beyond `eslint` is scoped to the surface that needs it; the
@@ -187,6 +203,9 @@ use.
 - `vite >=8` for the Vite factories and plugins; `vitest >=4` for the test
   presets, plus `@vitest/browser-playwright >=4`, `@vitest/coverage-istanbul >=4`,
   and `playwright >=1.50` for `browserTestConfig`.
+- `@earendil-works/pi-ai`, `@earendil-works/pi-coding-agent`, and `typebox`
+  for the pi extensions - the `pi` CLI provides all three at runtime, so
+  they're optional peers with no version floor.
 
 ## License
 

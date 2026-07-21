@@ -1,2 +1,7 @@
 packages:
   - 'projects/*'
+allowBuilds:
+  # Type-only transitive devDependencies of @earendil-works/pi-ai; their
+  # postinstall scripts are unnecessary for typechecking and stay disabled.
+  '@google/genai': false
+  protobufjs: false

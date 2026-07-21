@@ -21,6 +21,7 @@ The defaults are personal and deliberately strict. Relax specific rules per proj
 | Surface                   | What you get                                                                                    |
 | ------------------------- | ----------------------------------------------------------------------------------------------- |
 | [ESLint](eslint/)         | Flat configs plus the full catalog of custom `tools/*` rules.                                   |
+| [Pi](pi/)                 | Extensions for the pi coding agent - spoken greetings, audio turn summaries, and project hooks.  |
 | [Prettier](prettier/)     | One shared formatting config, referenced straight from `package.json`.                           |
 | [Stylelint](stylelint/)   | Standard config plus logical-property and design-token enforcement.                              |
 | [Vale](vale/)             | Prose-lint starter kit: ini template plus a shared accept/reject vocabulary.                     |
