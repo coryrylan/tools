@@ -1,5 +1,5 @@
 // Loads the per-surface markdown docs that live in the @coryrylan/tools
-// package itself (projects/lib/src/<surface>/docs/index.md - the source of
+// package itself (projects/tools/src/<surface>/docs/index.md - the source of
 // truth for each tool surface: eslint, prettier, stylelint, vale, vite,
 // vitest) and validates them against the package's own exports map so the
 // published site can never drift from what the package actually ships.
@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { extractSummary, validateIdsMatch } from './doc-utils.js';
 
 const docsRoot = fileURLToPath(new URL('.', import.meta.url));
-const libRoot = resolve(docsRoot, '../lib');
+const libRoot = resolve(docsRoot, '../tools');
 
 /**
  * Vale is a directory of shipped assets (ini template + vocabulary), not a
@@ -54,9 +54,9 @@ export function loadSurfaces() {
   // publish a dead page nothing links to.
   validateIdsMatch(exportedIds, documentedIds, {
     missingMessage: ids =>
-      `Exported surface(s) with no docs page: ${ids.join(', ')}. Add projects/lib/src/<surface>/docs/index.md so every shipped surface is documented.`,
+      `Exported surface(s) with no docs page: ${ids.join(', ')}. Add projects/tools/src/<surface>/docs/index.md so every shipped surface is documented.`,
     orphanedMessage: ids =>
-      `Surface docs page(s) with no exports-map entry: ${ids.join(', ')}. Remove the stale docs, or add the surface to projects/lib/package.json#exports (asset-only surfaces belong in ASSET_SURFACES instead).`
+      `Surface docs page(s) with no exports-map entry: ${ids.join(', ')}. Remove the stale docs, or add the surface to projects/tools/package.json#exports (asset-only surfaces belong in ASSET_SURFACES instead).`
   });
 
   return exportedIds.map(id => {

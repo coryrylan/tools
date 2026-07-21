@@ -12,19 +12,19 @@ an `AGENTS.md` paragraph - which an agent can skim past or forget - as a
 deterministic gate that fails the build. Relax specific rules per project
 rather than expecting softer defaults upstream.
 
-- Package README (install, surfaces, full rule reference): [projects/lib/README.md](./projects/lib/README.md)
+- Package README (install, surfaces, full rule reference): [projects/tools/README.md](./projects/tools/README.md)
 - Docs site: https://coryrylan.github.io/tools/
 
 ## Layout
 
 This is a pnpm workspace with two packages:
 
-- `projects/lib` - the `@coryrylan/tools` npm package: the ESLint plugin, its flat configs and custom `tools/*` rules, plus the Prettier, Stylelint, Vale, Vite, and Vitest surfaces.
+- `projects/tools` - the `@coryrylan/tools` npm package: the ESLint plugin, its flat configs and custom `tools/*` rules, plus the Prettier, Stylelint, Vale, Vite, and Vitest surfaces.
 - `projects/docs` - the static documentation site (Eleventy + NVIDIA Elements, deployed to GitHub Pages via `.github/workflows/pages.yml`).
 
 The repository consumes every surface it ships: the root `eslint.config.js`,
 `prettier.config.js`, `stylelint.config.js`, and `.vale.ini` all resolve to
-`@coryrylan/tools`, and `projects/lib` builds and tests itself with its own
+`@coryrylan/tools`, and `projects/tools` builds and tests itself with its own
 Vite and Vitest presets.
 
 ## Development

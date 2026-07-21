@@ -16,7 +16,7 @@ importers:
         version: 21.2.0
       '@coryrylan/tools':
         specifier: workspace:*
-        version: link:projects/lib
+        version: link:projects/tools
       '@semantic-release/changelog':
         specifier: 6.0.3
         version: 6.0.3(semantic-release@25.0.5(supports-color@10.2.2)(typescript@7.0.2))
@@ -83,7 +83,7 @@ importers:
         version: 8.0.0(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0)
       '@coryrylan/tools':
         specifier: workspace:*
-        version: link:../lib
+        version: link:../tools
       '@nvidia-elements/lint':
         specifier: 2.0.1
         version: 2.0.1(@nvidia-elements/themes@2.0.0)(eslint@10.7.0(jiti@2.7.0)(supports-color@10.2.2))
@@ -97,7 +97,7 @@ importers:
         specifier: 0.14.13
         version: 0.14.13
 
-  projects/lib:
+  projects/tools:
     devDependencies:
       '@earendil-works/pi-ai':
         specifier: 0.80.10

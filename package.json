@@ -38,7 +38,7 @@
   "wireit": {
     "ci": {
       "dependencies": [
-        "./projects/lib:ci",
+        "./projects/tools:ci",
         "./projects/docs:ci",
         "format",
         "lint",
@@ -49,23 +49,23 @@
     "lint": {
       "command": "eslint .",
       "dependencies": [
-        "./projects/lib:build"
+        "./projects/tools:build"
       ],
       "files": [
         "projects/*/src/**",
         "eslint.config.js",
         "release.config.js",
-        "projects/lib/release.config.js"
+        "projects/tools/release.config.js"
       ],
       "output": []
     },
     "release": {
-      "command": "cd projects/lib && HUSKY=0 pnpm exec semantic-release"
+      "command": "cd projects/tools && HUSKY=0 pnpm exec semantic-release"
     },
     "format": {
       "command": "prettier --check .",
       "dependencies": [
-        "./projects/lib:build"
+        "./projects/tools:build"
       ],
       "files": [
         "**/*.{js,cjs,mjs,ts,mts,cts,json,md,yml,yaml,css,html,svg}",
@@ -75,14 +75,14 @@
         "!**/dist/**",
         "!**/.wireit/**",
         "!**/coverage/**",
-        "!projects/lib/src/vale/styles/**"
+        "!projects/tools/src/vale/styles/**"
       ],
       "output": []
     },
     "lint:styles": {
       "command": "stylelint 'projects/*/src/**/*.css'",
       "dependencies": [
-        "./projects/lib:build"
+        "./projects/tools:build"
       ],
       "files": [
         "projects/*/src/**/*.css",
@@ -91,14 +91,14 @@
       "output": []
     },
     "lint:vale": {
-      "command": "vale --config=.vale.ini --glob='*.md' README.md projects/lib/README.md projects/docs/README.md projects/lib/src/eslint/docs projects/lib/src/prettier/docs projects/lib/src/stylelint/docs projects/lib/src/vite/docs projects/lib/src/vitest/docs projects/lib/src/vale/docs projects/lib/src/pi/docs projects/docs/src",
+      "command": "vale --config=.vale.ini --glob='*.md' README.md projects/tools/README.md projects/docs/README.md projects/tools/src/eslint/docs projects/tools/src/prettier/docs projects/tools/src/stylelint/docs projects/tools/src/vite/docs projects/tools/src/vitest/docs projects/tools/src/vale/docs projects/tools/src/pi/docs projects/docs/src",
       "files": [
         ".vale.ini",
         "README.md",
         "projects/*/README.md",
-        "projects/lib/src/**/*.md",
+        "projects/tools/src/**/*.md",
         "projects/docs/src/**/*.md",
-        "projects/lib/src/vale/styles/**"
+        "projects/tools/src/vale/styles/**"
       ],
       "output": []
     }

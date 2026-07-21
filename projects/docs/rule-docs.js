@@ -1,5 +1,5 @@
 // Loads the per-rule markdown docs that live in the @coryrylan/tools
-// package itself (projects/lib/src/eslint/docs/rules/*.md - the source of
+// package itself (projects/tools/src/eslint/docs/rules/*.md - the source of
 // truth for rule behavior) and derives, from the built plugin's own rule
 // registry and config exports, which config(s) enable each rule by default.
 // Consumed by eleventy.config.js to generate the rule pages, the rules
@@ -12,7 +12,7 @@ import agentLintRules from '@coryrylan/tools/eslint';
 import { extractSummary, validateIdsMatch } from './doc-utils.js';
 
 const docsRoot = fileURLToPath(new URL('.', import.meta.url));
-const ruleDocsDir = resolve(docsRoot, '../lib/src/eslint/docs/rules');
+const ruleDocsDir = resolve(docsRoot, '../tools/src/eslint/docs/rules');
 const TOOLS_RULE_PREFIX = 'tools/';
 
 /** Whether a flat-config rule entry (a bare severity, or `[severity, ...options]`) turns the rule on. */
@@ -69,7 +69,7 @@ export function loadRules() {
   const docRuleIds = files.map(ruleIdFromFilename);
   validateIdsMatch([...ruleConfigs.keys()], docRuleIds, {
     orphanedMessage: ids =>
-      `Rule doc(s) with no corresponding registered rule in plugin.ts: ${ids.map(id => `${id}.md`).join(', ')}. Remove the stale doc, or register the rule in projects/lib/src/eslint/plugin.ts.`,
+      `Rule doc(s) with no corresponding registered rule in plugin.ts: ${ids.map(id => `${id}.md`).join(', ')}. Remove the stale doc, or register the rule in projects/tools/src/eslint/plugin.ts.`,
     missingMessage: ids =>
       `Rule(s) registered in plugin.ts with no doc file under ${ruleDocsDir}: ${ids.join(', ')}. Add "<rule-id>.md" so the docs site stays in sync with the registered ruleset.`
   });

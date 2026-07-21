@@ -29,8 +29,8 @@
     "build": {
       "command": "eleventy",
       "dependencies": [
-        "../lib:test",
-        "../lib:lint"
+        "../tools:test",
+        "../tools:lint"
       ],
       "files": [
         "src/**",
@@ -39,8 +39,8 @@
         "surface-docs.js",
         "doc-utils.js",
         "package.json",
-        "../lib/src/*/docs/**",
-        "../lib/package.json"
+        "../tools/src/*/docs/**",
+        "../tools/package.json"
       ],
       "output": [
         "dist/**"

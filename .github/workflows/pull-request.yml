@@ -11,7 +11,7 @@ jobs:
       - run: pnpm run ci
       - name: Verify only dist, CHANGELOG, LICENSE, README, and package.json are published
         run: |
-          cd projects/lib
+          cd projects/tools
           pnpm pack --out /tmp/tools.tgz
           if tar -tzf /tmp/tools.tgz | grep -vE '^package/(dist/|LICENSE$|README\.md$|CHANGELOG\.md$|package\.json$)'; then
             echo 'Unexpected files in the published tarball (listed above).'

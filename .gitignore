@@ -146,5 +146,5 @@ vite.config.ts.timestamp-*
 .wireit/
 
 # Vale style packages downloaded by `vale sync` (source-of-truth is .vale.ini)
-projects/lib/src/vale/styles/Google/
-projects/lib/src/vale/styles/write-good/
+projects/tools/src/vale/styles/Google/
+projects/tools/src/vale/styles/write-good/

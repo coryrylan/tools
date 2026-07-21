@@ -56,4 +56,4 @@ export default [...typescriptConfig, ...jsonConfig];
 export { default } from '@coryrylan/tools/stylelint';
 ```
 
-Builds and tests wire up the same way - the [Vite](vite/) library build factories and the [Vitest](vitest/) node/browser presets are each a one-import config. Each surface's page covers its own install, usage, and peer requirements. The [package README](https://github.com/coryrylan/tools/blob/main/projects/lib/README.md) has the full peer-dependency and licensing details.
+Builds and tests wire up the same way - the [Vite](vite/) library build factories and the [Vitest](vitest/) node/browser presets are each a one-import config. Each surface's page covers its own install, usage, and peer requirements. The [package README](https://github.com/coryrylan/tools/blob/main/projects/tools/README.md) has the full peer-dependency and licensing details.

@@ -4,10 +4,10 @@ on:
   push:
     branches: [main]
     paths:
-      # The docs site renders rule docs sourced from projects/lib, so lib
+      # The docs site renders rule docs sourced from projects/tools, so lib
       # changes must redeploy the site too.
       - 'projects/docs/**'
-      - 'projects/lib/**'
+      - 'projects/tools/**'
       - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 

@@ -70,7 +70,7 @@ function renderRulesSectionMarkdown(rules) {
 
   return `## Rules
 
-Every rule \`@coryrylan/tools\` ships, generated at build time from [\`src/eslint/docs/rules/*.md\`](https://github.com/coryrylan/tools/tree/main/projects/lib/src/eslint/docs/rules) in the package itself - see each rule's page for the full rationale, examples, options, and "when not to use it" guidance.
+Every rule \`@coryrylan/tools\` ships, generated at build time from [\`src/eslint/docs/rules/*.md\`](https://github.com/coryrylan/tools/tree/main/projects/tools/src/eslint/docs/rules) in the package itself - see each rule's page for the full rationale, examples, options, and "when not to use it" guidance.
 
 | Rule | What it catches | Enabled by |
 | --- | --- | --- |
@@ -213,7 +213,7 @@ export default function (eleventyConfig) {
   eleventyConfig.setLibrary('md', markdown);
 
   // Rule pages, surface pages, and llms.txt are virtual
-  // templates built from ../lib/src/**/docs markdown rather than files on
+  // templates built from ../tools/src/**/docs markdown rather than files on
   // disk - loadRules() fails the build the moment the rule docs drift from
   // the plugin's own rule registry (see rule-docs.js), and loadSurfaces()
   // fails it when the surface docs drift from the package exports map

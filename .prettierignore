@@ -10,4 +10,4 @@ LICENSE
 projects/docs/src/**/*.md
 
 # Vale style assets, including third-party packages downloaded by `vale sync`.
-projects/lib/src/vale/styles/
+projects/tools/src/vale/styles/

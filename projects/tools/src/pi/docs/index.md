@@ -8,7 +8,7 @@ Extensions for the [pi](https://pi.dev) coding agent, shipped together as a pi p
 pi install npm:@coryrylan/tools
 ```
 
-Installs to user settings (`~/.pi/agent/settings.json`) - available in every pi session. Add `-l` to install into project settings (`.pi/settings.json`) instead, which scopes the package to (and makes it shareable with) one repo:
+Installs to user settings (`~/.pi/agent/settings.json`) - available in every pi session. Add `-l` to install into project settings (`.pi/settings.json` instead, which scopes the package to (and makes it shareable with) one repo:
 
 ```sh
 pi install -l npm:@coryrylan/tools
