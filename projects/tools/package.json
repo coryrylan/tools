@@ -1,6 +1,6 @@
 {
   "name": "@coryrylan/tools",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "license": "MIT",
   "type": "module",
   "description": "Shared ESLint, Prettier, Stylelint, Vale, Vite, and Vitest configs, custom lint rules, and pi coding-agent extensions - for keeping codebases maintainable when coding agents are the primary contributors.",
