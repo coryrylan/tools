@@ -58,7 +58,9 @@ export default {
       '@semantic-release/exec',
       {
         prepareCmd: 'npm pkg set version=${nextRelease.version} && pnpm pack',
-        publishCmd: `npm publish ./*.tgz --provenance --registry=https://registry.npmjs.org ${DRY_RUN ? '--dry-run' : ''} --access=public`
+        // OIDC trusted publishing mints provenance automatically — no `--provenance` flag.
+        // https://docs.npmjs.com/trusted-publishers
+        publishCmd: `npm publish ./*.tgz --registry=https://registry.npmjs.org ${DRY_RUN ? '--dry-run' : ''} --access=public`
       }
     ],
     [
