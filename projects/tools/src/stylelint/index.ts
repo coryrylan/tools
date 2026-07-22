@@ -2,10 +2,9 @@ import type { Config } from 'stylelint';
 
 /**
  * Personal Stylelint preferences layered on `stylelint-config-standard`.
- * Point a `stylelint.config.js` at it with
- * `export { default } from '@coryrylan/tools/stylelint';`, or import the
- * default export and add `rules`/`overrides` on top for project-specific
- * exceptions.
+ * Point `stylelint.config.js` at it with
+ * `export { default } from '@coryrylan/tools/stylelint';`, or add
+ * `rules`/`overrides` on the default export for project overrides.
  */
 const config: Config = {
   extends: ['stylelint-config-standard'],

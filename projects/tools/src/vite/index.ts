@@ -12,11 +12,9 @@ export interface BrowserLibraryBuildConfigOptions {
 
 /**
  * The build shape both factories below share: ESM-only, every bare
- * specifier externalized (a dependency stays a real `package.json`
- * dependency instead of getting inlined, so tree-shaking stays viable
- * downstream), and `preserveModules` so `dist` mirrors `src` 1:1 - one
- * output file per source module, which is what lets `package.json#exports`
- * map deep-import paths straight to build output.
+ * specifier externalized (keeps tree-shaking viable downstream), and
+ * `preserveModules` so `dist` mirrors `src` 1:1 for `package.json#exports`
+ * deep-import paths.
  */
 function createLibraryBuildConfig(target: 'node22' | 'esnext', entry: LibraryOptions['entry']): UserConfig {
   return {
@@ -37,14 +35,11 @@ function createLibraryBuildConfig(target: 'node22' | 'esnext', entry: LibraryOpt
 }
 
 /**
- * Vite build config for a Node.js library entry point: ESM output only,
- * targets `node22`, and never bundles a dependency - every bare specifier
- * (`lit`, `node:path`, `@scope/pkg`) is externalized. `preserveModules`
- * keeps one output file per source module instead of one monolithic
- * bundle, so `package.json#exports` can expose deep-import paths.
+ * Vite build config for a Node.js library entry point: ESM-only, targets
+ * `node22`, externalizes every bare specifier, and preserves one output
+ * file per source module for `package.json#exports` deep imports.
  *
- * Extend it with `mergeConfig` rather than hand-rolling the shape again:
- *
+ * @example
  * ```ts
  * import { mergeConfig } from 'vite';
  * import { createNodeLibraryBuildConfig } from '@coryrylan/tools/vite';
@@ -61,10 +56,8 @@ export function createNodeLibraryBuildConfig(options: NodeLibraryBuildConfigOpti
 
 /**
  * Vite build config for a browser library entry point. Same shape as
- * {@link createNodeLibraryBuildConfig} - ESM-only, everything external,
- * `preserveModules` - except it targets `esnext` instead of a Node.js
- * runtime, since the consuming browser (or a downstream bundler) declares
- * its own compilation baseline.
+ * {@link createNodeLibraryBuildConfig} except it targets `esnext`, since the
+ * consuming browser (or downstream bundler) declares its own baseline.
  */
 export function createBrowserLibraryBuildConfig(options: BrowserLibraryBuildConfigOptions): UserConfig {
   return createLibraryBuildConfig('esnext', options.entry);

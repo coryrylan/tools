@@ -6,12 +6,11 @@ import { pickRandomGreeting, speakWithSay } from './speech.js';
 type SpeakGreeting = (text: string, ctx: ExtensionContext, signal: AbortSignal | undefined) => Promise<void>;
 
 /**
- * Registers the greeting extension on `pi`: speaks a random greeting aloud
- * via macOS `say` whenever a session starts or is created, and registers a
- * `greet` tool the LLM can call to greet the user aloud on demand.
+ * Registers the extension: speaks a random greeting via macOS `say` on
+ * session start, and registers a `greet` tool for on-demand greetings.
  *
- * @param pi - Extension API used to subscribe to lifecycle events and register tools.
- * @param speak - Speaking strategy; defaults to the real `say`-backed implementation. Overridable so tests can verify wiring without producing audio.
+ * @param pi - Subscribes to lifecycle events and registers tools.
+ * @param speak - Speaking strategy; overridable so tests avoid audio.
  */
 export default function greetingExtension(pi: ExtensionAPI, speak: SpeakGreeting = speakWithSay): void {
   pi.on('session_start', (event, ctx) => {

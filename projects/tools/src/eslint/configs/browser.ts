@@ -6,14 +6,10 @@ const ssrSafeMessage = (globalName: string): string =>
   `Use ${globalName} instead of the bare global so this code stays safe to run outside a full browser window (SSR, workers, tests).`;
 
 /**
- * Flags direct references to browser globals that silently assume a
- * `window`-backed environment. Agents reach for `window`/`document` out of
- * habit; the `globalThis`-qualified form works in browser, SSR, and worker
- * contexts alike, so there is nothing to rewrite later.
- *
- * Also wires in the `tools/*` cleanup rules - listener, observer, and timer
- * teardown are all browser/DOM-lifecycle concerns, so they live alongside
- * the SSR-safety check rather than in `typescriptConfig`.
+ * Flags direct references to browser globals assuming a `window`-backed
+ * environment; `globalThis`-qualified works in browser, SSR, and worker
+ * contexts alike. Also wires in `tools/*` listener/observer/timer cleanup
+ * rules - DOM-lifecycle concerns too.
  */
 export const browserConfig: Linter.Config[] = [
   globalIgnores,

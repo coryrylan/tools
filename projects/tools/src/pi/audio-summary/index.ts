@@ -16,13 +16,12 @@ const MAX_OUTPUT_CHARS = 300;
 const SUMMARY_MAX_TOKENS = 2048;
 
 /**
- * Registers the audio-summary extension on `pi`: after each agent turn,
- * rephrases the final message for speech with a small model and speaks it
- * aloud via macOS `say`. Falls back to the raw turn text when the summary
- * model is unavailable, and degrades to a UI notification (no audio) off
- * macOS, without `say` installed, or while other system audio is playing.
+ * Registers the extension: after each turn, rephrases the reply for
+ * speech with a small model and speaks it via macOS `say`. Falls back to
+ * raw text if unavailable, or notifies instead of speaking when audio
+ * can't play.
  *
- * @param pi - Extension API used to subscribe to the `agent_end` lifecycle event.
+ * @param pi - Subscribes to `agent_end`.
  */
 export default function audioSummaryExtension(pi: ExtensionAPI): void {
   pi.on('agent_end', async (event, ctx) => {
@@ -57,10 +56,10 @@ async function handleAgentEnd(event: AgentEndEvent, ctx: ExtensionContext): Prom
 }
 
 /**
- * Extracts the spoken-candidate text from the last message of an
- * `agent_end` event: the last text part of an assistant/tool message, or the
- * raw string content of a user message. Returns `undefined` when there is no
- * last message, or its last content part isn't text (e.g. a tool call).
+ * Extracts spoken-candidate text from the last `agent_end` message: the
+ * last text part of an assistant/tool message, or a user message's raw
+ * string content. Returns `undefined` if there's no last message or its
+ * last part isn't text (e.g. a tool call).
  */
 export function extractLastMessageText(messages: AgentEndEvent['messages']): string | undefined {
   const lastMessage = messages.at(-1);
@@ -123,10 +122,9 @@ export function extractAssistantMessageText(response: AssistantMessage): string 
 }
 
 /**
- * Resolves the model used for summarization: {@link SUMMARY_MODEL} parsed as
+ * Resolves the summarization model: {@link SUMMARY_MODEL} parsed as
  * `<provider>/<id>` and looked up in `ctx.modelRegistry`, falling back to
- * `ctx.model` (the session's current model) whenever `SUMMARY_MODEL` is
- * unset, malformed, or doesn't resolve.
+ * `ctx.model` when unset, malformed, or unresolved.
  */
 export function selectSummaryModel(ctx: ExtensionContext): Model<Api> | undefined {
   const currentModel = ctx.model;

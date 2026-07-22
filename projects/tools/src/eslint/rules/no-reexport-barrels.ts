@@ -1,9 +1,7 @@
 /**
- * ESLint rule that flags files re-exporting from more modules than
- * `maxReexports` allows. Agents follow barrel files (`export * from './x'`)
- * transitively - reading one barrel to find a symbol drags an entire
- * dependency closure into context. Deep barrels also block tree-shaking and
- * are a common source of import cycles.
+ * Flags files re-exporting from more modules than `maxReexports` allows.
+ * Barrel files transitively drag an entire dependency closure into an
+ * agent's context, block tree-shaking, and cause import cycles.
  */
 import type { Rule } from 'eslint';
 

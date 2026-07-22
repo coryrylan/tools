@@ -1,14 +1,10 @@
 /**
- * Claude-Code-style lifecycle hooks loaded from a project's
- * `.agents/hooks.json`: SessionStart, PreToolUse, PostToolUse, and Stop
- * events run matching `type: "command"` hooks via `bash -lc`, with the
- * event payload written to the child's stdin as JSON. A PreToolUse hook
- * exiting with code 2 blocks the tool call; a failing Stop hook queues a
- * single follow-up user message asking the agent to fix and re-check.
+ * Claude-Code-style lifecycle hooks from `.agents/hooks.json`, run via
+ * `bash -lc` with stdin JSON. Exit 2 blocks PreToolUse; Stop failures
+ * queue one follow-up message.
  *
- * @see https://docs.claude.com/en/docs/claude-code/hooks - the hook
- * contract (event names, matchers, exit-code semantics) this extension
- * mirrors, so an existing Claude Code hooks config works unmodified.
+ * @see https://docs.claude.com/en/docs/claude-code/hooks - mirrored for
+ * compatibility.
  */
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { isAbsolute, relative } from 'node:path';

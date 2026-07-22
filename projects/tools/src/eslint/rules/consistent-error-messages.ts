@@ -1,9 +1,8 @@
 /**
- * ESLint rule that requires thrown/constructed `Error`s (and subclasses) to
- * carry a non-empty, informative message. Agents routinely emit placeholder
- * throw sites (`new Error('error')`, `new Error('')`) that make production
- * debugging impossible; deterministic message hygiene catches this before
- * review has to.
+ * Requires thrown/constructed `Error`s (and subclasses) to carry a
+ * non-empty, informative message. Agents routinely emit placeholder throw
+ * sites (`new Error('error')`, `new Error('')`); catching this in lint beats
+ * catching it in production debugging.
  */
 import type { Rule } from 'eslint';
 import type { TemplateLiteral } from 'estree';
@@ -41,11 +40,10 @@ function readOptions(context: Rule.RuleContext): ConsistentErrorMessagesOptions 
 }
 
 /**
- * Error-constructor-shaped identifier names this rule cares about (built-ins
- * and custom `*Error` classes), excluding `AggregateError`. Requires a PascalCase
- * (uppercase-first) name so ordinary helpers whose name merely ends in `Error`
- * - `reportError`, `logError`, `handleError`, `onError` - are not mistaken for
- * constructors; every built-in and conventional custom error class is PascalCase.
+ * Error-constructor-shaped names this rule targets (built-ins and custom
+ * `*Error` classes), excluding `AggregateError`. Requires PascalCase so
+ * helpers merely named `reportError`/`logError`/`handleError`/`onError`
+ * aren't mistaken for constructors.
  */
 function isErrorConstructorName(name: string): boolean {
   return name !== 'AggregateError' && /^[A-Z]/.test(name) && /Error$/.test(name);
@@ -83,10 +81,10 @@ function analyzeText(text: string, options: ConsistentErrorMessagesOptions): Ver
 }
 
 /**
- * A template literal starting with `${` (empty leading quasi plus at least
- * one expression) is always treated as informative. Typed against the plain
- * `estree` shape (not `Rule.Node`) because this is a call argument, not a
- * traversed node, so it doesn't carry a `.parent` back-pointer.
+ * A template literal starting with `${` (empty leading quasi, at least one
+ * expression) is always informative. Typed as plain `estree` (not
+ * `Rule.Node`): it's a call argument, not a traversed node, so it has no
+ * `.parent` back-pointer.
  */
 function analyzeTemplateLiteral(node: TemplateLiteral, options: ConsistentErrorMessagesOptions): Verdict {
   const firstQuasi = node.quasis[0];

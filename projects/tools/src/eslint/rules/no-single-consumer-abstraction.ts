@@ -1,11 +1,10 @@
 /// <reference types="node" />
 
 /**
- * Flags an exported abstraction (an `abstract` class, or one whose name matches
- * a configured `Base…`/`…Base` pattern) with fewer than `minimumConsumers`
- * implementation consumers. Consumers are found by scanning sibling source
- * files on disk (cached per package root) and text-matching `extends` clauses,
- * resolving named/aliased/namespace/default imports and package barrel re-exports.
+ * Flags an exported abstraction (`abstract` class or name matching `Base…`/
+ * `…Base`) with fewer than `minimumConsumers` implementers, found by scanning
+ * sibling source files and text-matching `extends` clauses, resolving
+ * imports and barrel re-exports.
  */
 
 import { existsSync } from 'node:fs';
@@ -405,11 +404,10 @@ function findPackageRoot(filename: string): string | null {
 }
 
 /**
- * Every specifier a consumer could plausibly use to import `toFile` from
- * `fromFile`: extensionless, `.js`, `.ts`, and - when `toFile` is a `.tsx`
- * source - the JSX-bearing equivalents too. Text-matching imports can't know
- * which module resolution convention a given consumer file follows, so every
- * candidate is checked instead of assuming one.
+ * Every specifier a consumer could use to import `toFile` from `fromFile`:
+ * extensionless, `.js`, `.ts`, plus JSX equivalents for `.tsx` sources.
+ * Text-matching can't know a consumer's module resolution convention, so
+ * every candidate is checked.
  */
 function relativeImportSpecifiers(fromFile: string, toFile: string): readonly string[] {
   const fromDir = fromFile.slice(0, fromFile.lastIndexOf('/'));

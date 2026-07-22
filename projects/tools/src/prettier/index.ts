@@ -1,16 +1,12 @@
 import type { Config } from 'prettier';
 
 /**
- * Personal Prettier preferences, shared across projects so formatting stops
- * being a per-repo decision. Point `package.json`'s `"prettier"` field at
- * `"@coryrylan/tools/prettier"` to consume it directly, or import this
- * default export and spread it into a local `prettier.config.js` to layer
- * project-specific overrides on top.
+ * Shared Prettier preferences so formatting isn't per-repo. Point
+ * `package.json`'s `"prettier"` at `"@coryrylan/tools/prettier"`, or
+ * spread it locally.
  *
- * `embeddedLanguageFormatting: 'off'` is deliberate: embedded template
- * literals (Lit `html`/`css` tagged templates) are hand-formatted rather
- * than reflowed by Prettier's embedded-language support, which tends to
- * mangle multi-line markup readability.
+ * `embeddedLanguageFormatting: 'off'`: Lit templates are hand-formatted,
+ * not Prettier reflowed.
  */
 const config: Config = {
   trailingComma: 'none',

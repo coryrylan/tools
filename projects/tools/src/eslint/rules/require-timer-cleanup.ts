@@ -1,9 +1,8 @@
 /**
- * ESLint rule that flags timer leaks in class bodies: an unstored
- * `setInterval` (which can never be cleared), a `setInterval` handle stored in
- * a local variable that is never cleared or handed off, and stored
- * `setInterval`/`setTimeout` handles that are never passed to a matching
- * `clearInterval`/`clearTimeout` anywhere in the class.
+ * Flags timer leaks in class bodies: unstored `setInterval` (can't be
+ * cleared), a local handle never cleared or handed off, and stored
+ * `setInterval`/`setTimeout` handles never passed to a matching
+ * `clearInterval`/`clearTimeout`.
  */
 import type { Rule, Scope } from 'eslint';
 import { findEnclosingClass, normalize, walk } from './utils.js';
@@ -153,10 +152,10 @@ function propertyDefinitionAsThisMember(node: PropertyDefinitionNode, context: R
 }
 
 /**
- * Matches `const id = setInterval(...)` (any of `const`/`let`/`var`), where
- * the handle is bound to a plain identifier rather than destructured. A
- * destructuring pattern can't be resolved back to a single traceable binding
- * here, so it falls outside this rule's scope-analysis path.
+ * Matches `const id = setInterval(...)` (`const`/`let`/`var`) where the
+ * handle binds to a plain identifier, not a destructured pattern -
+ * destructuring can't resolve back to a single traceable binding, so it's
+ * outside this rule's scope-analysis path.
  */
 function getLocalIntervalHandleDeclarator(
   parent: Rule.Node,
@@ -169,14 +168,10 @@ function getLocalIntervalHandleDeclarator(
 }
 
 /**
- * A local interval handle is safe to leave unstored-on-`this` when every use
- * of the binding shows the handle is either cleared or handed off before the
- * enclosing function returns: passed to any call (`clearInterval(id)`, or an
- * external owner like `registry.track(id)`), returned to the caller, or
- * assigned onward to a longer-lived reference (`this.#timer = id`). Uses scope
- * analysis (rather than walking the enclosing function's AST) so a reference
- * inside the interval's own callback - a closure over the binding - still
- * resolves back to the same variable.
+ * A local handle is safe unstored on `this` when every use is cleared or
+ * handed off: passed to a call (`clearInterval(id)`, `registry.track(id)`),
+ * returned, or reassigned (`this.#timer = id`). Scope analysis resolves
+ * closures to the same variable.
  */
 function localIntervalHandleIsClearedOrEscapes(context: Rule.RuleContext, declarator: VariableDeclaratorNode): boolean {
   const [handleVariable] = context.sourceCode.getDeclaredVariables(declarator);

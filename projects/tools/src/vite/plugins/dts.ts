@@ -20,10 +20,9 @@ export interface DtsPluginOptions {
 }
 
 /**
- * Resolves `<compilerPackage>/bin/tsc` from the *consuming* project's own
+ * Resolves `<compilerPackage>/bin/tsc` from the *consuming* project's
  * dependency tree, not this package's - a monorepo consumer commonly pins a
- * different TypeScript (or the `typescript-go` native-compiler alias) than
- * whatever this package itself was built with.
+ * different TypeScript (or `typescript-go`) than this package built with.
  */
 function resolveTscBinaryPath(compilerPackage: string): string | undefined {
   try {
@@ -38,8 +37,8 @@ function resolveTscBinaryPath(compilerPackage: string): string | undefined {
 /**
  * Copies every hand-written `src/**\/*.d.ts` (excluding `*.test.d.ts`) into
  * `outDir`, preserving its path relative to `srcDir` - `tsc` only emits
- * declarations for `.ts` sources, so ambient/hand-authored `.d.ts` files
- * never make it into the build output on their own.
+ * declarations for `.ts` sources, so hand-authored `.d.ts` never reaches
+ * the build output on its own.
  */
 function copyHandWrittenDeclarationFiles(srcDir: string, outDir: string): void {
   if (!existsSync(srcDir)) return;
@@ -57,9 +56,9 @@ function copyHandWrittenDeclarationFiles(srcDir: string, outDir: string): void {
 
 /**
  * Runs the resolved tsc binary without blocking the event loop. Rejects on a
- * nonzero exit so type errors still fail the build - the one place this
- * package's warn-and-no-op rule doesn't apply, because a silently skipped
- * typecheck would publish broken declarations.
+ * nonzero exit so type errors fail the build - the one exception to this
+ * package's warn-and-no-op rule, since a skipped typecheck would publish
+ * broken declarations.
  */
 function runTsc(args: string[]): Promise<void> {
   return new Promise((resolvePromise, rejectPromise) => {
@@ -77,19 +76,10 @@ function runTsc(args: string[]): Promise<void> {
 }
 
 /**
- * Generates the type declaration files that accompany a library's published
- * JS build. Shells out to the consumer's own TypeScript compiler (or the
- * `typescript-go` native-compiler alias, via `compilerPackage`) at build
- * start so declarations are always in sync with the code that just built,
- * then copies over any hand-written `.d.ts` files `tsc` wouldn't otherwise
- * emit - for example, ambient module declarations. The compiler runs
- * asynchronously; watch builds additionally pass `--incremental` with build
- * info stored at `<outDir>/.tsbuildinfo` so a rebuild reuses tsc's prior
- * state instead of retypechecking from scratch.
- *
- * If `compilerPackage` can't be resolved from the consumer's dependency
- * tree, this warns and no-ops rather than throwing - library code never
- * crashes a consumer's build over a misconfigured option.
+ * Generates a library's type declarations via the consumer's own tsc (or
+ * `typescript-go`). Copies hand-written `.d.ts` files tsc wouldn't emit;
+ * watch builds add `--incremental` caching. Warns and no-ops if
+ * `compilerPackage` can't be resolved.
  */
 export function dts(options: DtsPluginOptions = {}): Plugin {
   const project = options.project ?? DEFAULT_PROJECT;

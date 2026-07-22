@@ -16,20 +16,10 @@ const strictTypeCheckedRules = tseslint.configs.strictTypeChecked.reduce<Linter.
 );
 
 /**
- * The full, no-exceptions config, in two entries. The first is non-type-aware
- * and applies to all JS/TS files: `@eslint/js` recommended plus size and
- * complexity limits that keep any single generated file or function within a
- * range a reviewer (human or agent) can actually hold in their head, and the
- * syntax-only `tools/*` rules. The second is type-aware and scoped to TS
- * files: `typescript-eslint` `strictTypeChecked`, JSDoc checks, and the
- * `tools/*` rules that need type information - currently just
- * `no-deep-class-inheritance`, which resolves each superclass's own
- * declaration via the type checker. It requires
- * `parserOptions.projectService` to resolve type information, which makes it
- * comparatively slow (e.g. pre-commit, CI).
- *
- * Meant as the default for new agent-maintained projects - relax specific
- * rules per-project rather than swapping this config out wholesale.
+ * Two entries: non-type-aware (all JS/TS, `@eslint/js` recommended plus
+ * size/complexity limits) and type-aware (TS, `strictTypeChecked` plus
+ * JSDoc), needing `projectService`, so slower. Default for agent projects;
+ * relax per-project, don't swap out.
  */
 export const typescriptConfig: Linter.Config[] = [
   globalIgnores,
@@ -57,6 +47,7 @@ export const typescriptConfig: Linter.Config[] = [
       'no-restricted-imports': ['error', { patterns: ['**/dist/**', '**/node_modules/**'] }],
       'id-length': ['error', { min: 2, exceptions: ['_'] }],
       'tools/no-dead-code': 'error',
+      'tools/no-excessive-comments': 'error',
       'tools/no-single-consumer-abstraction': 'error',
       'tools/no-unjustified-disable': 'error',
       'tools/no-reexport-barrels': 'error',

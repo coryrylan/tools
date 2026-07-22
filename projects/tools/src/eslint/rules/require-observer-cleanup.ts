@@ -72,11 +72,10 @@ function isReferenceRetained(node: RetentionCheckNode): boolean {
 }
 
 /**
- * `?:` and `??`/`||` forward one operand through as their own result, so an
- * observer sitting in a forwarded branch is exactly as retained as the
- * wrapper expression - the caller re-runs the same retention check one level
- * up. A `ConditionalExpression` `test` is consumed for its boolean-ness, not
- * forwarded, so an observer there is still a discarded leak.
+ * `?:` and `??`/`||` forward one operand through, so an observer there is as
+ * retained as the wrapper - retention rechecks one level up. A
+ * `ConditionalExpression` test is consumed for boolean-ness only, so an
+ * observer there still leaks.
  */
 function isTransparentWrapper(parent: Rule.Node, node: RetentionCheckNode): parent is TransparentWrapperNode {
   if (parent.type === 'ConditionalExpression') {

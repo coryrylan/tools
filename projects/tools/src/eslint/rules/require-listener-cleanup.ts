@@ -142,18 +142,10 @@ function checkPair(env: CheckEnv, pair: LifecyclePair): void {
 }
 
 /**
- * An `addEventListener` call whose options argument statically guarantees the
- * listener detaches itself needs no paired `removeEventListener`:
- * `{ once: true }` self-removes after the first invocation, and `{ signal }`
- * delegates teardown to whatever aborts that `AbortSignal` - which commonly
- * lives outside the setup/teardown pair this rule pairs up, e.g. a shared
- * `AbortController` aborted from a different lifecycle hook entirely.
+ * Self-detaching options skip the paired `removeEventListener`:
+ * `once: true` self-removes; `signal` defers to whatever aborts it.
  * https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#options
- *
- * Only a statically-analyzable options object exempts the call: an options
- * value that isn't an object literal (a boolean, an identifier, a spread-only
- * object) can't be proven self-cleaning here, so it keeps requiring a paired
- * `removeEventListener` rather than risk a false negative.
+ * Non-literal options still need one.
  */
 function isSelfCleaningListenerCall(node: CallExpressionNode): boolean {
   const optionsArg = node.arguments[2];

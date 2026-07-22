@@ -14,52 +14,10 @@ it('defines rule metadata', () => {
 });
 
 /**
- * ## Why this file needs a second preamble
- *
- * `no-unjustified-disable` reports on `eslint-disable*` directive *comments*
- * themselves - but ESLint's own linter also interprets those same comments
- * as real directives before RuleTester ever sees the resulting messages. Two
- * of ESLint's built-in behaviors interact with our fixtures and had to be
- * worked around deliberately (verified empirically against this exact
- * ESLint version, not assumed):
- *
- * 1. **Unknown rule ids.** If a fixture disables a rule id that isn't a real,
- *    loaded rule (e.g. the placeholder `foo` used in the rule's own spec
- *    prose), ESLint adds a hard "Definition for rule 'foo' was not found"
- *    error to the message list - for *both* valid and invalid cases - which
- *    breaks RuleTester's message-count assertions. Fix: fixtures use real
- *    core rule ids (`no-console`, `no-unused-vars`) instead of placeholders.
- *
- * 2. **A bare, blanket `eslint-disable` (no rule list) suppresses our own
- *    report.** Such a directive disables *every* rule from that point in the
- *    file onward, including this custom rule, at the exact location where
- *    we'd report - so by default RuleTester would see zero messages for a
- *    blanket-disable fixture, not our rule's messages. Confirmed via a
- *    minimal repro rule using `Linter#verify` directly: a blanket disable
- *    comment with no other code produces an empty message array even though
- *    the rule always reports once per comment.
- *
- *    Fix: the specific invalid cases that use a *blanket* disable (no rule
- *    list) set `linterOptions: { noInlineConfig: true }` on that test case.
- *    This makes ESLint skip applying the directive entirely - so our rule's
- *    messages survive - while our rule still sees the comment normally via
- *    `sourceCode.getAllComments()` (comments are unaffected by
- *    `noInlineConfig`, only their effect on suppression is). The trade-off:
- *    ESLint adds one deterministic warning message per directive comment,
- *    `'<comment text>' has no effect because you have 'noInlineConfig'
- *    setting in your config.`, which every such case must list alongside our
- *    rule's own messageIds (see `noInlineConfigWarning` below).
- *
- *    Non-blanket directives (`eslint-disable-line`/`eslint-disable-next-line`
- *    naming a specific real rule) do *not* need this workaround: they only
- *    suppress the named rule, never a differently-named custom rule, so our
- *    report is never touched - verified the same way.
- *
- * Both instance-level `reportUnusedDisableDirectives: 'off'` is also set,
- * since most fixtures intentionally "disable" a rule that never actually
- * fires on that line (we only care about the directive comment's shape, not
- * about it suppressing anything real) - without this, ESLint adds its own
- * "Unused eslint-disable directive" warning to every such case too.
+ * RuleTester's linter treats disable comments as real directives; fixtures
+ * use real rule ids to avoid a spurious "rule not found" message. Blanket
+ * disables suppress our report, so those cases set
+ * `noInlineConfig: true`, adding a deterministic warning.
  */
 const tester = new RuleTester({
   languageOptions: {

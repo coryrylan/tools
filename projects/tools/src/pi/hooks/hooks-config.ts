@@ -38,9 +38,9 @@ export interface HookRuntime {
 
 /**
  * Loads and parses `.agents/hooks.json` for the project containing `cwd`.
- * Never throws - a missing file yields an empty runtime, and a malformed
- * file yields an empty runtime with `loadError` set so the extension can
- * warn instead of crashing the session.
+ * Never throws - a missing file yields an empty runtime; a malformed file
+ * yields one with `loadError` set so the extension warns instead of
+ * crashing.
  */
 export async function loadHookRuntime(cwd: string): Promise<HookRuntime> {
   const hooksFile = await findHooksFile(cwd);

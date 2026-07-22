@@ -1,8 +1,6 @@
 /**
- * Removing dead/commented-out code keeps an agent's context free of zombie
- * snippets that look load-bearing but aren't. Version control already
- * remembers deleted code, so a comment that only exists to preserve an old
- * implementation is pure noise for the next agent that reads the file.
+ * Dead code snippets look load-bearing but aren't, wasting an agent's context.
+ * Version control already remembers deleted code, so keeping it around is pure noise.
  *
  * @see https://kentcdodds.com/blog/please-dont-commit-commented-out-code
  */
@@ -19,19 +17,17 @@ export interface NoDeadCodeOptions {
 const DEFAULT_ALLOW_PATTERNS: readonly string[] = [];
 
 /**
- * Comments that exist to talk to tooling rather than to a reader - ESLint
- * directive comments, TypeScript pragma comments, Prettier's ignore marker,
- * and c8/istanbul coverage markers - are never dead code, no matter what
- * text follows the marker. Checked against the trimmed comment text.
+ * Comments that talk to tooling, not a reader - ESLint directives, TS pragmas,
+ * Prettier's ignore marker, c8/istanbul markers - are never dead code regardless
+ * of what follows the marker.
  */
 const DIRECTIVE_COMMENT_PATTERN =
   /^(?:eslint-disable|eslint-enable|eslint-env|globals?\b|exported\b|@ts-|prettier-ignore|c8\b|istanbul\b)/;
 
 /**
- * Heuristics for "this comment contains commented-out source code", ported
- * from the rule this replaces: each pattern targets one JS/TS construct that
- * shows up in real code but essentially never in prose (see inline comments
- * on patterns that need extra care to avoid false positives).
+ * Heuristics for "this comment contains commented-out source code", ported from
+ * the rule this replaces: each pattern targets one JS/TS construct common in real
+ * code but rare in prose (see inline comments on patterns needing extra care).
  */
 const CODE_LIKE_PATTERNS: Readonly<Record<string, RegExp>> = {
   importStatement: /\s*import\s+.*from\s+['"].*['"];/,
@@ -66,12 +62,10 @@ function isDirectiveComment(text: string): boolean {
 }
 
 /**
- * Strips markdown-style inline code spans (`` `...` ``) before running the
- * commented-out-code heuristics. Prose and JSDoc routinely reference a
- * construct by name for illustration (`` `it(...)` ``, `` `export * from
- * './mod.js';` ``) and real dead code is never itself wrapped in backticks,
- * so anything that only "looks like code" inside a backtick span is a doc
- * reference, not a commented-out statement.
+ * Strips markdown inline code spans before running the code heuristics. Prose
+ * routinely names a construct for illustration (`` `it(...)` ``); real dead code
+ * is never backtick-wrapped, so a backtick span is a doc reference, not
+ * commented-out code.
  */
 function stripInlineCodeSpans(text: string): string {
   return text.replace(/`[^`]*`/g, '');
@@ -93,10 +87,9 @@ function readOptions(context: Rule.RuleContext): NoDeadCodeOptions {
 }
 
 /**
- * The JSON schema only validates `allowPatterns` entries as strings, so a
- * malformed regex source (e.g. `'[test'`) reaches here uncompiled. Skipping a
- * pattern that fails to compile - rather than letting `new RegExp` throw -
- * keeps one bad option entry from crashing the entire lint run.
+ * The JSON schema only validates `allowPatterns` as strings, so a malformed
+ * regex source reaches here uncompiled. Skipping a pattern that fails to
+ * compile keeps one bad option entry from crashing the entire lint run.
  */
 function tryCompile(source: string): RegExp | null {
   try {

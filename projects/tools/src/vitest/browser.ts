@@ -13,13 +13,12 @@ const isWatchMode = process.argv.includes('--watch');
 const ciConcurrencyLimits = isCi ? { maxWorkers: 1, maxConcurrency: 1 } : {};
 
 /**
- * Preset Vitest config for browser-mode component tests against a real
- * Chromium instance via the Playwright provider. Separate entry point from
- * `./index.js` so a consumer without `@vitest/browser-playwright` installed
- * never loads this module's import of it.
+ * Vitest config for browser-mode tests via Playwright. Separate from
+ * `./index.js` so importers without `@vitest/browser-playwright` never
+ * load it. Needs that peer, `@vitest/coverage-istanbul`, `playwright`,
+ * plus `pnpm exec playwright install chromium`.
  *
- * Extend it with `mergeConfig`:
- *
+ * @example
  * ```ts
  * // vitest.config.ts
  * import { mergeConfig, defineConfig } from 'vitest/config';
@@ -32,14 +31,6 @@ const ciConcurrencyLimits = isCi ? { maxWorkers: 1, maxConcurrency: 1 } : {};
  *   }),
  * );
  * ```
- *
- * Requires the optional peers `@vitest/browser-playwright`,
- * `@vitest/coverage-istanbul`, and `playwright`, plus a browser installed
- * via `pnpm exec playwright install chromium`.
- *
- * `CI`/`--watch` detection is resolved once at import time (see `isCi` and
- * `isWatchMode` above) - changing either after this module loads has no
- * effect on an already-built config.
  */
 export const browserTestConfig: ViteUserConfig = {
   test: {

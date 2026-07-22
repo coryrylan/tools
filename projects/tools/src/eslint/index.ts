@@ -13,10 +13,10 @@ export { jsonConfig } from './configs/json.js';
 export { browserConfig } from './configs/browser.js';
 
 /**
- * The `tools/*` rule registry every config below wires in under the
- * `tools` namespace (alongside `@typescript-eslint`/`jsdoc`/etc.). Defined
- * in `./plugin.js` - a separate module - so the configs can import the same
- * plugin instance directly without a circular import through this file.
+ * The `tools/*` rule registry every config below wires in under the `tools`
+ * namespace. Defined in `./plugin.js`, a separate module, so configs import
+ * the same plugin instance directly without a circular import through this
+ * file.
  */
 export { plugin };
 

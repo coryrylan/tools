@@ -4,12 +4,10 @@ import htmlParser from '@html-eslint/parser';
 import { globalIgnores } from './shared.js';
 
 /**
- * Structural and correctness rules for HTML files: `@html-eslint`
- * recommended (duplicate ids/attrs, obsolete tags, `lang`/`alt`
- * requirements, baseline feature checks, ...) with the pure-formatting
- * rules turned off - Prettier owns formatting. `frontmatter: true` lets
- * static-site templates (11ty and similar) carry YAML frontmatter without
- * tripping the parser.
+ * Structural and correctness rules for HTML: `@html-eslint` recommended
+ * (duplicate ids/attrs, obsolete tags, `lang`/`alt`) with formatting rules
+ * off - Prettier owns those. `frontmatter: true` lets 11ty-style templates
+ * carry YAML frontmatter.
  */
 export const htmlConfig: Linter.Config[] = [
   globalIgnores,

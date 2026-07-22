@@ -1,10 +1,8 @@
 /**
- * ESLint rule that requires every `eslint-disable*` directive comment to
- * carry a trailing `-- <reason>` justification (and, by default, an explicit
- * rule list rather than a blanket disable). Agents reach for `eslint-disable`
- * to get a green CI run; without a reason attached, a reviewer (human or
- * agent) has no way to tell a legitimate suppression from one hiding a real
- * bug, and a blanket disable silences rules nobody has looked at yet.
+ * Requires `eslint-disable*` directives to carry `-- <reason>` and, by
+ * default, explicit rule ids: agents reach for `eslint-disable` for CI;
+ * without a reason nobody can tell suppression from a hidden bug, and
+ * blanket disables hide unreviewed rules.
  */
 import type { Rule } from 'eslint';
 import type { Comment } from 'estree';
@@ -25,21 +23,18 @@ function readOptions(context: Rule.RuleContext): NoUnjustifiedDisableOptions {
 }
 
 /**
- * Matches a comment that opens with one of the three ESLint directive
- * keywords (`eslint-disable`, `eslint-disable-line`, `eslint-disable-next-line`),
- * anchored so the keyword must be the very first thing in the (trimmed)
- * comment text and be followed by whitespace or end-of-text. This
- * deliberately excludes `eslint-enable` (not a suppression, nothing to
- * justify) and prose that merely mentions "eslint-disable" mid-sentence.
+ * Matches the ESLint directive keywords (`eslint-disable`, `-line`,
+ * `-next-line`), anchored so the keyword opens the comment and is followed
+ * by whitespace or end-of-text. Excludes `eslint-enable` and prose
+ * mentioning eslint-disable mid-sentence.
  */
 const DIRECTIVE_KEYWORD_PATTERN = /^(eslint-disable-next-line|eslint-disable-line|eslint-disable)(?=\s|$)/;
 
 /**
- * The `--` separator ESLint's own directive syntax uses to split the rule
- * list from the human-readable description, e.g.
- * `eslint-disable-next-line no-console -- reason`. Requires at least one
- * whitespace character before the dashes (so it can't misfire mid rule-id)
- * but is otherwise lenient about spacing around it.
+ * The `--` separator ESLint's directive syntax uses to split rule list
+ * from description, e.g. `eslint-disable-next-line no-console -- reason`.
+ * Requires leading whitespace before the dashes so it can't misfire mid
+ * rule-id; otherwise lenient on spacing.
  */
 const JUSTIFICATION_SEPARATOR_PATTERN = /\s+--\s*/;
 

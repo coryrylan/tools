@@ -1,9 +1,8 @@
 /**
- * Shared helpers for rules that need to reason about AST shape generically
- * (walking a subtree, matching normalized text), about lexical scope (which
- * class a node lives in), or about the filesystem (listing a package's source
- * files, reading them safely). Extracted so that logic stays consistent
- * across the `tools/*` rules that build on top of them.
+ * Shared helpers for rules reasoning about AST shape (walking a subtree,
+ * matching normalized text), lexical scope (enclosing class), or the
+ * filesystem (listing/reading source files safely). Extracted so logic
+ * stays consistent across `tools/*` rules.
  */
 
 import { type Dirent, readFileSync, readdirSync } from 'node:fs';
@@ -12,10 +11,10 @@ import { fileURLToPath } from 'node:url';
 import type { Rule } from 'eslint';
 
 /**
- * A structural view of an AST node sufficient for generic traversal: every
- * node has a string `type` and may carry arbitrary child properties. This
- * intentionally does not commit to a specific node union (ESTree vs.
- * TypeScript-ESTree) so `walk` can traverse any parser's tree.
+ * A structural view of an AST node for generic traversal: every node has a
+ * string `type` and may carry arbitrary child properties. Avoids committing
+ * to a specific node union (ESTree vs. TypeScript-ESTree) so `walk` can
+ * traverse any parser's tree.
  */
 type AstNode = { readonly type: string } & Record<string, unknown>;
 
@@ -25,10 +24,10 @@ function isAstNode(value: unknown): value is AstNode {
 }
 
 /**
- * Recursively visits every node reachable from `node`, in no particular
- * guaranteed order beyond depth-first. Skips the `parent` back-pointer (every
- * node points back to its parent, so following it would recurse forever) and
- * descends into arrays of children and into single child nodes.
+ * Recursively visits every node reachable from `node`, depth-first with no
+ * further order guarantee. Skips the `parent` back-pointer (every node
+ * points to its parent, so following it recurses forever) and descends into
+ * child arrays and single nodes.
  */
 export function walk(node: unknown, visit: (node: Rule.Node) => void): void {
   if (!isAstNode(node)) {
@@ -76,12 +75,9 @@ export function findEnclosingClass(node: Rule.Node): ClassNode | null {
 export const IMPLICIT_EXCLUDED_DIRS: readonly string[] = ['node_modules', 'dist'];
 
 /**
- * Milliseconds a package's recursive file listing stays cached before
- * {@link getPackageFiles} recomputes it. Long enough to amortize repeated
- * lookups across every candidate class linted within one file and across one
- * lint pass; short enough that a long-lived ESLint process (IDE language
- * server, `eslint_d`, watch mode) reflects a file added or removed on disk
- * within about one save-and-relint cycle instead of requiring a restart.
+ * TTL for {@link getPackageFiles}'s cache: long enough to amortize repeated
+ * lookups per lint pass, short enough that a long-lived process (IDE server,
+ * `eslint_d`, watch mode) reflects disk changes without a restart.
  */
 export const FILE_CACHE_TTL_MS = 5000;
 

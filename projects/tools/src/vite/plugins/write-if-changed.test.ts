@@ -20,13 +20,10 @@ interface FakeOutputAsset {
 type WriteBundleHandler = (outputOptions: Rollup.NormalizedOutputOptions, bundle: Rollup.OutputBundle) => void;
 
 /**
- * Narrowly casts the plugin's `writeBundle` hook to a directly callable
- * function. The real hook type requires a `PluginContext` `this` binding
- * (needed only when Rollup itself invokes the hook as a method) and allows
- * an async return - this plugin's implementation reads neither `this` nor
- * ever returns a promise, so binding a fake `this` and discarding the
- * return value reflects the real contract under test, not an assertion
- * away of a type error.
+ * Narrowly casts the plugin's `writeBundle` hook to a callable function.
+ * The real type requires a `PluginContext` `this` (only needed when
+ * Rollup invokes it as a method) and allows an async return - this
+ * implementation uses neither.
  */
 function getWriteBundleHandler(plugin: Plugin): WriteBundleHandler {
   const hook = plugin.writeBundle;

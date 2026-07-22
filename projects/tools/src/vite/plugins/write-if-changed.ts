@@ -16,14 +16,10 @@ export interface WriteIfChangedPluginOptions {
 }
 
 /**
- * Vite plugin that only writes bundle files to disk if their content has
- * changed. Prevents unnecessary file system writes - and the downstream
- * rebuilds/HMR churn a file watcher would otherwise trigger - when a
- * rebuild produces byte-identical output.
- *
- * Uses `writeBundle` instead of `generateBundle` for Rolldown compatibility:
- * Rolldown does not support mutating the bundle object, so the write has to
- * happen after Rollup/Rolldown's own bundle-writing step, not in place of it.
+ * Vite plugin that only writes bundle files if content changed, avoiding
+ * file-watcher/HMR churn on a byte-identical rebuild. Uses `writeBundle`
+ * not `generateBundle`: Rolldown can't mutate the bundle, so the write
+ * happens after Rollup's own write step.
  */
 export function writeIfChanged(options: WriteIfChangedPluginOptions = {}): Plugin {
   return {

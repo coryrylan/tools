@@ -43,11 +43,10 @@ interface FakePi {
 }
 
 /**
- * Minimal fake `ExtensionAPI` that captures the handlers `agentsHooksExtension`
- * registers for each event, cast narrowly rather than satisfying the full
- * interface - only `on`, `registerCommand`, and `sendUserMessage` are called.
- * When `sendUserMessageThrows` is set, `sendUserMessage` throws instead of
- * recording the message, exercising the follow-up queue's catch branch.
+ * Minimal fake `ExtensionAPI` capturing registered handlers, cast
+ * narrowly - only `on`, `registerCommand`, `sendUserMessage` are used.
+ * `sendUserMessageThrows` makes it throw, exercising the follow-up
+ * queue's catch branch.
  */
 function createFakePi(options: { sendUserMessageThrows?: boolean } = {}): FakePi {
   const handlers: Record<string, unknown> = {};

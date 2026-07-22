@@ -15,12 +15,10 @@ type ExternalPredicate = (id: string) => boolean;
 type RollupOptions = NonNullable<NonNullable<UserConfig['build']>['rollupOptions']>;
 
 /**
- * `build.rollupOptions` is typed `@deprecated` in favor of `rolldownOptions`
- * (Vite 8's Rolldown migration), but it's the field the factories under test
- * populate - matching the pre-existing, hand-written `vite.config.ts` this
- * surface generalizes. Reading it back here for assertions is intentional,
- * so the deprecation warning is suppressed in this one place instead of at
- * every call site below.
+ * `build.rollupOptions` is `@deprecated` in favor of `rolldownOptions`
+ * (Vite 8's Rolldown migration), but it is the field these factories
+ * populate, matching the existing `vite.config.ts` pattern - suppressed
+ * once here instead of every call site below.
  */
 function getRollupOptions(config: UserConfig): RollupOptions {
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- intentional: this package's factories populate the deprecated `rollupOptions` field to match the existing vite.config.ts pattern; see getRollupOptions JSDoc.
@@ -32,10 +30,10 @@ function getRollupOptions(config: UserConfig): RollupOptions {
 }
 
 /**
- * Narrowly casts `rollupOptions.external` to a directly callable predicate.
- * The production type also allows a string, `RegExp`, or array - this
- * package's factories always configure a function, so the `typeof` guard
- * documents that assumption instead of asserting it away with `any`.
+ * Narrowly casts `rollupOptions.external` to a callable predicate. The
+ * production type also allows a string, `RegExp`, or array - these
+ * factories always configure a function, so `typeof` documents that
+ * assumption instead of an `any` cast.
  */
 function getExternalPredicate(config: UserConfig): ExternalPredicate {
   const external = getRollupOptions(config).external;

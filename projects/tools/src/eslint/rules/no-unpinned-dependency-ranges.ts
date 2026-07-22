@@ -1,40 +1,18 @@
 /**
- * Enforces version-specifier conventions in `package.json` dependency blocks
- * so that installs stay reproducible without breaking downstream
- * deduplication:
- *
- * - Private packages: every dependency must be pinned to an exact version
- *   (or a `workspace:*` link) - there is no consumer to deduplicate for, so
- *   a range only adds nondeterminism.
- * - Published packages: runtime dependencies (`dependencies`,
- *   `peerDependencies`, `optionalDependencies`) must use a range (`^`/`~`,
- *   or a concrete `workspace:` range) so consumers can dedupe; `devDependencies`
- *   must stay pinned since they never affect consumers.
- *
- * Agents habitually run `pnpm add` (or edit `package.json` by hand) using
- * whatever specifier the tool defaults to, which is easy to get backwards
- * for a given package's publish status - this rule catches that in the diff
- * instead of at release time.
- *
- * This is a JSON-language rule (built on `@eslint/json`'s momoa-backed AST),
- * not an ESTree rule. `@eslint/json` exports a `JSONRuleDefinition` helper
- * type, which is used below for `meta`/`create` typing; the shapes of the
- * individual momoa nodes touched inside `create` (Document/Object/Member/
- * String/Boolean) are never named explicitly - TypeScript infers them
- * contextually from the `Document(node)` visitor signature and narrows them
- * via the `.type` discriminant checks, so no local structural interfaces
- * (or a direct dependency on `@humanwhocodes/momoa`, which this package
- * does not declare) are needed.
+ * Enforces package.json version rules for reproducible installs: private
+ * packages pin exact versions; published runtime deps need a range for
+ * dedupe, devDependencies stay pinned. Catches agents defaulting to the
+ * wrong specifier for publish status.
  */
 
 import type { JSONRuleDefinition } from '@eslint/json';
 
 interface NoUnpinnedDependencyRangesOptions {
   /**
-   * Whether pnpm's `catalog:` protocol (e.g. `catalog:`, `catalog:publish`)
-   * is accepted unconditionally, bypassing the pinned/range checks below.
-   * Defaults to `true`. Set to `false` to make `catalog:` specifiers subject
-   * to the same rules as any other version string.
+   * Whether pnpm's `catalog:` protocol is accepted unconditionally,
+   * bypassing pinned/range checks. Defaults to `true`; set `false` to make
+   * `catalog:` specifiers follow the same rules as any other version
+   * string.
    */
   readonly allowCatalog?: boolean;
 }
@@ -51,11 +29,10 @@ const DEPENDENCY_GROUPS = new Set(['dependencies', 'devDependencies', 'peerDepen
 const RUNTIME_DEPENDENCY_GROUPS = new Set(['dependencies', 'peerDependencies', 'optionalDependencies']);
 
 /**
- * Any specifier that can resolve to more than one version: caret/tilde,
- * comparators (`>=9`, `<6.1.0`), unions (`^9 || ^10`), hyphen ranges
- * (`1.2 - 2`), and wildcard components (`*`, `1.x`, `1.2.x`). Protocol
- * specifiers such as `workspace:*` and `catalog:` deliberately do not match;
- * they are handled by their own branches.
+ * Matches specifiers resolving to more than one version: caret/tilde,
+ * comparators (`>=9`), unions (`^9 || ^10`), hyphen ranges (`1.2 - 2`),
+ * wildcards (`*`, `1.x`). `workspace:*`/`catalog:` deliberately don't
+ * match; handled by their own branches.
  */
 const VERSION_RANGE_PATTERN = /^[\^~]|^[<>]=?\s*\d|\|\||\s-\s|^(?:\d+(?:\.\d+)?\.)?[x*]$/;
 

@@ -1,11 +1,8 @@
 /**
- * Agents tend to solve "I need a slightly different X" by subclassing X
- * instead of composing behavior, and the habit compounds: each new layer
- * makes sense in isolation, but understanding any one class now requires
- * reading the whole chain up to its root. This rule counts superclass hops
- * and reports once a class's inheritance chain passes a configured maximum,
- * so local wrappers around an allowed root stay possible without letting the
- * hierarchy grow without bound.
+ * Agents solve "need a slightly different X" by subclassing X instead of
+ * composing; each layer makes sense alone but understanding one class means
+ * reading the whole chain to its root. Counts superclass hops, reports once
+ * a chain passes the max.
  */
 
 import type { Rule } from 'eslint';
@@ -27,11 +24,10 @@ const ANONYMOUS_CLASS_NAME = '<anonymous>';
 type ClassDeclarationNode = Extract<Rule.Node, { type: 'ClassDeclaration' }>;
 
 /**
- * The slice of typescript-eslint's type-aware parser services this rule
- * needs. `context.sourceCode.parserServices` is typed as `unknown`-ish by
- * ESLint itself (it varies per parser), so this narrows it once at the
- * boundary instead of letting an unchecked shape flow through the rest of
- * the rule.
+ * The slice of typescript-eslint's type-aware parser services this rule needs.
+ * `parserServices` is typed `unknown`-ish by ESLint (varies per parser), so
+ * this narrows it once at the boundary instead of an unchecked shape
+ * flowing through the rule.
  */
 interface TypeAwareParserServices {
   readonly program: ts.Program;
@@ -76,10 +72,10 @@ function getExtendsExpression(classDeclaration: ts.ClassLikeDeclaration): ts.Exp
 }
 
 /**
- * Structural stand-in for `ts.isClassLike`, again to keep typescript out of the
- * runtime import graph. Declaration merging means this can also match an
- * interface with the same name; interfaces use `extends` heritage clauses too,
- * so chain walking still terminates correctly in that case.
+ * Structural stand-in for `ts.isClassLike`, again to keep typescript out of
+ * the runtime import graph. Declaration merging can match an interface of the
+ * same name; interfaces use `extends` clauses too, so chain walking still
+ * terminates correctly.
  */
 function isClassLikeDeclaration(declaration: ts.Declaration): declaration is ts.ClassLikeDeclaration {
   const candidate = declaration as Partial<ts.ClassLikeDeclaration>;
@@ -92,10 +88,10 @@ function resolveClassName(symbol: ts.Symbol | undefined, expression: ts.Expressi
 }
 
 /**
- * The next superclass expression to follow from `symbol`'s declaration, or
- * `null` once there's no further (or already-visited) class-like declaration
- * to walk into. Marks the declaration visited as a side effect so `visited`
- * stays accurate for the caller's next iteration.
+ * The next superclass expression from `symbol`'s declaration, or `null` once
+ * there's no further (or already-visited) class-like declaration to walk into.
+ * Marks the declaration visited so `visited` stays accurate for the caller's
+ * next iteration.
  */
 function resolveNextExpression(
   symbol: ts.Symbol | undefined,
@@ -111,10 +107,10 @@ function resolveNextExpression(
 }
 
 /**
- * Walks superclass hops starting from `superClass`, collecting each link's
- * display name, until it runs out of resolvable declarations or hits a name
- * in `allowedRoots`. `visited` guards against revisiting the same
- * declaration if a project's types ever formed a cycle.
+ * Walks superclass hops from `superClass`, collecting each link's display
+ * name until it runs out of resolvable declarations or hits a name in
+ * `allowedRoots`. `visited` guards against revisiting a declaration if a
+ * project's types ever formed a cycle.
  */
 function getInheritanceChain(
   superClass: ts.Expression,

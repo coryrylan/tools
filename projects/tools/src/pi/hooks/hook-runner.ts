@@ -45,11 +45,10 @@ export interface HookCommandResult {
 }
 
 /**
- * Runs every command hook in every group of `options.eventName` whose
- * matcher matches `options.matcherTarget`, in manifest order. Sets and
- * clears the extension's status line for the duration. When
- * `stopAfterBlockingPreHook` is set (PreToolUse only), stops and returns
- * early on the first hook whose result blocks the tool call.
+ * Runs every command hook whose group matches `options.matcherTarget`, in
+ * manifest order, toggling the status line for the duration. With
+ * `stopAfterBlockingPreHook` (PreToolUse only), stops at the first
+ * blocking result.
  */
 export async function runMatchingHooks(options: RunHookOptions): Promise<HookCommandResult[]> {
   const results: HookCommandResult[] = [];

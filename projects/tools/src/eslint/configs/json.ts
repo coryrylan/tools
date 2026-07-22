@@ -4,15 +4,10 @@ import { plugin } from '../plugin.js';
 import { globalIgnores } from './shared.js';
 
 /**
- * Structural correctness for JSON files (duplicate keys, unsafe numeric
- * values, ...) - the same class of "syntactically valid but semantically
- * broken" failure the JS/TS configs guard against, just for manifests and
- * config files. `tsconfig*.json` gets the JSONC variant since it commonly
- * carries comments.
- *
- * `package.json` additionally gets the `tools/no-unpinned-dependency-ranges`
- * check, scoped separately since it only applies to that one filename, not
- * JSON generally.
+ * Structural correctness for JSON (duplicate keys, unsafe numbers), same
+ * class of failure the JS/TS configs guard against. `tsconfig*.json` gets
+ * the JSONC variant for comment support. `package.json` also gets
+ * `no-unpinned-dependency-ranges`.
  */
 export const jsonConfig: Linter.Config[] = [
   globalIgnores,

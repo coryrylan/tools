@@ -4,10 +4,10 @@ import json from '@eslint/json';
 import noUnpinnedDependencyRanges from './no-unpinned-dependency-ranges.js';
 
 /**
- * NOTE: `RuleTester.run()` detects Vitest's global `describe`/`it` (enabled
- * via `globals: true`) and uses them to register its own per-case tests, so
- * `.run(...)` must be called directly inside a `describe` block rather than
- * wrapped in an extra `it(...)` - nesting a suite call inside a test throws.
+ * `RuleTester.run()` detects Vitest's global `describe`/`it` and registers
+ * its own per-case tests, so `.run(...)` must sit directly inside a
+ * `describe` block, not wrapped in an `it(...)` - nesting a suite call
+ * inside a test throws.
  */
 
 const tester = new RuleTester({
