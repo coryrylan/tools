@@ -31,7 +31,7 @@
     "husky": "9.1.7",
     "prettier": "3.9.5",
     "semantic-release": "25.0.5",
-    "stylelint": "17.14.0",
+    "stylelint": "17.14.1",
     "stylelint-config-standard": "40.0.0",
     "wireit": "0.14.13"
   },

@@ -162,7 +162,7 @@
     "eslint-plugin-jsdoc": "63.0.13",
     "playwright": "1.61.1",
     "prettier": "3.9.5",
-    "stylelint": "17.14.0",
+    "stylelint": "17.14.1",
     "stylelint-config-standard": "40.0.0",
     "typebox": "1.1.38",
     "typescript": "6.0.3",
