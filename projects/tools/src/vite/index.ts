@@ -2,12 +2,12 @@ import type { LibraryOptions, UserConfig } from 'vite';
 
 /** Options for {@link createNodeLibraryBuildConfig}. */
 export interface NodeLibraryBuildConfigOptions {
-  readonly entry: LibraryOptions['entry'];
+  readonly entry: NonNullable<LibraryOptions['entry']>;
 }
 
 /** Options for {@link createBrowserLibraryBuildConfig}. */
 export interface BrowserLibraryBuildConfigOptions {
-  readonly entry: LibraryOptions['entry'];
+  readonly entry: NonNullable<LibraryOptions['entry']>;
 }
 
 /**
@@ -16,7 +16,10 @@ export interface BrowserLibraryBuildConfigOptions {
  * `preserveModules` so `dist` mirrors `src` 1:1 for `package.json#exports`
  * deep-import paths.
  */
-function createLibraryBuildConfig(target: 'node22' | 'esnext', entry: LibraryOptions['entry']): UserConfig {
+function createLibraryBuildConfig(
+  target: 'node22' | 'esnext',
+  entry: NonNullable<LibraryOptions['entry']>
+): UserConfig {
   return {
     build: {
       target,

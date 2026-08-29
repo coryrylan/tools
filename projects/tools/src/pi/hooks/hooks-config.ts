@@ -2,7 +2,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 
 /** Path to the project hooks manifest, resolved relative to a project root found by walking up from `cwd`. */
-export const HOOKS_FILE = '.agents/hooks.json';
+const HOOKS_FILE = '.agents/hooks.json';
 
 /** Timeout applied to a command hook when `.agents/hooks.json` omits `timeout`. */
 export const DEFAULT_TIMEOUT_SECONDS = 60;

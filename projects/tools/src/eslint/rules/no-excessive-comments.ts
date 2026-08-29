@@ -9,7 +9,7 @@ import type { Rule } from 'eslint';
 import type { Comment } from 'estree';
 
 /** Options for the `no-excessive-comments` rule. */
-export interface NoExcessiveCommentsOptions {
+interface NoExcessiveCommentsOptions {
   /** Maximum free-form prose characters allowed across a single JSDoc comment. */
   readonly max: number;
 }
