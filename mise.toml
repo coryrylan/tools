@@ -3,13 +3,21 @@ lockfile = true
 npm.package_manager = "pnpm"
 
 [tools]
-node = "26.5.0"
-pnpm = "11.15.0"
+node = "26.8.1"
+pnpm = "11.25.0"
 vale = "3.15.1"
 
 [tasks.clean]
 run = [
   "git clean -dfX"
+]
+
+# Bare `mise lock` only refreshes platforms already present in mise.lock, so a
+# newly added tool records no URLs at all and CI's `mise install --locked`
+# fails on linux-x64. Always lock through this task.
+[tasks.lock]
+run = [
+  "mise lock -p linux-x64,linux-arm64,macos-arm64"
 ]
 
 [tasks.install]

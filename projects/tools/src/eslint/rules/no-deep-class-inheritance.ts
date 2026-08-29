@@ -9,7 +9,7 @@ import type { Rule } from 'eslint';
 import type * as ts from 'typescript';
 
 /** Options for the `no-deep-class-inheritance` rule. */
-export interface NoDeepClassInheritanceOptions {
+interface NoDeepClassInheritanceOptions {
   /** Maximum number of superclass hops allowed before an allowed root is reached. */
   readonly maxDepth: number;
   /** Class names that end the depth count early once reached. */

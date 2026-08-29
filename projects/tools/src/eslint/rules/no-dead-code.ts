@@ -9,7 +9,7 @@ import type { Rule } from 'eslint';
 import type { Comment } from 'estree';
 
 /** Options for the `no-dead-code` rule. */
-export interface NoDeadCodeOptions {
+interface NoDeadCodeOptions {
   /** Regex source strings; a comment whose text matches any of these is never flagged. */
   readonly allowPatterns: readonly string[];
 }

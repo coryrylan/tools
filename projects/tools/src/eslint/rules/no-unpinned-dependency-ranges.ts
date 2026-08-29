@@ -20,7 +20,7 @@ interface NoUnpinnedDependencyRangesOptions {
 type NoUnpinnedDependencyRangesRuleOptions = [NoUnpinnedDependencyRangesOptions?];
 type NoUnpinnedDependencyRangesMessageIds = 'unpinned-range';
 
-export type NoUnpinnedDependencyRangesRuleDefinition = JSONRuleDefinition<{
+type NoUnpinnedDependencyRangesRuleDefinition = JSONRuleDefinition<{
   RuleOptions: NoUnpinnedDependencyRangesRuleOptions;
   MessageIds: NoUnpinnedDependencyRangesMessageIds;
 }>;
