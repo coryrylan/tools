@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/coryrylan/tools/compare/tools-v1.1.0...tools-v1.1.1) (2026-08-30)
+
+### Bug Fixes
+
+* **tools:** update dependencies ([dcbf4a6](https://github.com/coryrylan/tools/commit/dcbf4a693574247921920813b93e77520aafad64))
+* **tools:** update dependencies ([8e6a685](https://github.com/coryrylan/tools/commit/8e6a685392a14abe73721e7c3fc8d9b99233d9c6))
+
 ## [1.1.0](https://github.com/coryrylan/tools/compare/tools-v1.0.0...tools-v1.1.0) (2026-07-22)
 
 ### Features
