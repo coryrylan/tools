@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/coryrylan/tools/compare/tools-v1.1.1...tools-v1.2.0) (2026-09-05)
+
+### Features
+
+* **tools:** add audio summary and greeting enhancements ([39fd9ee](https://github.com/coryrylan/tools/commit/39fd9eec865e35a543cd7c7518b06f9fd79259ab))
+
 ## [1.1.1](https://github.com/coryrylan/tools/compare/tools-v1.1.0...tools-v1.1.1) (2026-08-30)
 
 ### Bug Fixes
