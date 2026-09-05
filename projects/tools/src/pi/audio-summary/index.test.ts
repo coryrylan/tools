@@ -1,6 +1,6 @@
 import type { AssistantMessage } from '@earendil-works/pi-ai';
 import type { AgentEndEvent, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import audioSummaryExtension, {
   extractAssistantMessageText,
   extractLastMessageText,
@@ -8,14 +8,12 @@ import audioSummaryExtension, {
   selectSummaryModel
 } from './index.js';
 
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 type AgentEndHandler = (event: AgentEndEvent, ctx: ExtensionContext) => Promise<void> | void;
 
-/**
- * Minimal fake `ExtensionAPI`, cast narrowly rather than satisfying its full
- * shape - only `on()` is called by the extension under test, and it is
- * captured here instead of invoked, so the extension never actually talks to
- * a running pi session.
- */
 function createStubExtensionApi(): { api: ExtensionAPI; handlers: Map<string, unknown> } {
   const handlers = new Map<string, unknown>();
   const api = {
@@ -34,11 +32,6 @@ interface FakeContextOptions {
   readonly findModel?: (provider: string, modelId: string) => unknown;
 }
 
-/**
- * Minimal fake `ExtensionContext`, cast narrowly rather than satisfying its
- * full shape - only the `ui`, `hasUI`, `model`, and `modelRegistry` members
- * exercised by this module are implemented.
- */
 function createFakeContext(options: FakeContextOptions = {}): ExtensionContext {
   const notifications = options.notifications ?? [];
   const statusCalls = options.statusCalls ?? [];
@@ -76,12 +69,6 @@ describe('audioSummaryExtension', () => {
 
     expect(handlers.has('agent_end')).toBe(true);
   });
-
-  // These wiring tests only exercise event shapes that make
-  // extractLastMessageText return undefined, so the handler returns before
-  // ever reaching the isSayAvailable() guard - the point past which the real
-  // implementation could spawn `say`/`afplay`/`osascript`. That keeps this
-  // suite silent and network-free on every platform it runs on.
 
   it('should no-op without notifying when there are no messages to summarize', async () => {
     const { api, handlers } = createStubExtensionApi();
@@ -264,5 +251,23 @@ describe('notifyUnresolvedSummaryModel', () => {
     notifyUnresolvedSummaryModel(ctx);
 
     expect(notifications).toEqual([]);
+  });
+});
+
+describe('audioSummaryExtension with playback suppressed', () => {
+  it('should notify the summary without reaching the speaking status when MOSHI_CLIENT is 1', async () => {
+    vi.stubEnv('MOSHI_CLIENT', '1');
+    const { api, handlers } = createStubExtensionApi();
+    audioSummaryExtension(api);
+    const handler = getCapturedAgentEndHandler(handlers);
+    const notifications: Array<[string, string | undefined]> = [];
+    const statusCalls: Array<[string, string | undefined]> = [];
+    const ctx = createFakeContext({ notifications, statusCalls });
+
+    await handler({ type: 'agent_end', messages: [{ role: 'user', content: 'Shipped the fix.', timestamp: 0 }] }, ctx);
+
+    expect(notifications).toContainEqual(['🔊 Shipped the fix.', 'info']);
+    expect(notifications).not.toContainEqual(['🔊 audio summaries unavailable', 'info']);
+    expect(statusCalls).toEqual([['audio-summary', undefined]]);
   });
 });

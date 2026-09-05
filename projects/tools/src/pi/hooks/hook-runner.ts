@@ -1,10 +1,12 @@
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, formatSize, truncateTail } from '@earendil-works/pi-coding-agent';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import { setExtensionStatus } from '../internals/index.js';
 import { getErrorMessage } from './hooks-config.js';
 import type { HookCommand, HookEventName, HookGroup, HookRuntime } from './hooks-config.js';
 
-/** JSON payload written to a hook command's stdin: Claude-Code field names plus snake/camel workspace-root aliases. */
+const STATUS_KEY = 'agents-hooks';
+
 export interface HookPayload extends Record<string, unknown> {
   hook_event_name: HookEventName;
   cwd: string;
@@ -16,7 +18,6 @@ export interface HookPayload extends Record<string, unknown> {
   projectDir?: string | undefined;
 }
 
-/** Options for {@link createBasePayload}. */
 export interface CreateBasePayloadOptions {
   eventName: HookEventName;
   ctx: ExtensionContext;
@@ -44,12 +45,6 @@ export interface HookCommandResult {
   aborted: boolean;
 }
 
-/**
- * Runs every command hook whose group matches `options.matcherTarget`, in
- * manifest order, toggling the status line for the duration. With
- * `stopAfterBlockingPreHook` (PreToolUse only), stops at the first
- * blocking result.
- */
 export async function runMatchingHooks(options: RunHookOptions): Promise<HookCommandResult[]> {
   const results: HookCommandResult[] = [];
 
@@ -70,10 +65,9 @@ export async function runMatchingHooks(options: RunHookOptions): Promise<HookCom
 }
 
 function setHookStatus(message: string | undefined, ctx: ExtensionContext): void {
-  if (ctx.hasUI) ctx.ui.setStatus('agents-hooks', message);
+  setExtensionStatus(ctx, STATUS_KEY, message);
 }
 
-/** True when `group.matcher` is absent (matches everything) or matches `target`; falls back to an exact-string match when the matcher isn't valid regex. */
 export function matchesHookGroup(group: HookGroup, target: string): boolean {
   if (!group.matcher) return true;
 
@@ -135,7 +129,6 @@ interface HookLifecycleHandles {
   abortListener: () => void;
 }
 
-/** Wires the timeout and abort-signal termination paths shared by every hook run, flagging `state` before killing the process tree. */
 function wireHookTimeoutAndAbort(options: WireHookLifecycleOptions): HookLifecycleHandles {
   const terminate = () => {
     terminateChildProcess(options.child);
@@ -163,7 +156,6 @@ interface CreateHookFinishHandlerOptions {
   resolveResult: (result: HookCommandResult) => void;
 }
 
-/** Builds the child-process `close`/`error` callback: settles exactly once, tears down the timeout/abort wiring, and resolves the run result. */
 function createHookFinishHandler(options: CreateHookFinishHandlerOptions): (code: number) => void {
   return code => {
     if (options.state.settled) return;
@@ -182,11 +174,6 @@ function createHookFinishHandler(options: CreateHookFinishHandlerOptions): (code
   };
 }
 
-/**
- * Runs a single command hook: spawns `bash -lc <command>`, writes the JSON
- * payload to stdin, and captures stdout/stderr/exit code. Never rejects -
- * a spawn error resolves with `code: 1` and the error message on stderr.
- */
 async function runCommandHook(hook: HookCommand, options: RunHookOptions): Promise<HookCommandResult> {
   const cwd = options.runtime.projectRoot ?? options.ctx.cwd;
 
@@ -238,7 +225,6 @@ function terminateChildProcess(child: ChildProcessWithoutNullStreams): void {
   }, 1_000).unref();
 }
 
-/** Builds the JSON payload written to a hook's stdin: Claude-Code field names plus snake/camel workspace-root aliases so both naming conventions work. */
 export function createBasePayload(options: CreateBasePayloadOptions): HookPayload {
   const { eventName, ctx, runtime, extra = {} } = options;
   const sessionFile = ctx.sessionManager.getSessionFile();
@@ -261,7 +247,6 @@ export function createBasePayload(options: CreateBasePayloadOptions): HookPayloa
   };
 }
 
-/** Claude-Code hook matchers use PascalCase tool names (`Bash`, `Read`); pi's tool-call events use lowercase. */
 export function getHookToolName(toolName: string): string {
   return `${toolName.charAt(0).toUpperCase()}${toolName.slice(1)}`;
 }
@@ -290,7 +275,6 @@ function formatHookResult(result: HookCommandResult): string {
   return [header, output].filter(Boolean).join('\n\n');
 }
 
-/** Formats a hook's captured stdout+stderr for feedback text, appending a truncation notice (line/byte counts) when the combined output exceeded the tool-output limits. */
 export function formatHookOutput(result: HookCommandResult): string {
   const raw = [result.stdout.trimEnd(), result.stderr.trimEnd()].filter(Boolean).join('\n');
   if (!raw) {
