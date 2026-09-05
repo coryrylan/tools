@@ -54,7 +54,7 @@ Pi bundles `@earendil-works/pi-ai`, `@earendil-works/pi-coding-agent`, and `type
 
 ### `greeting`
 
-Speaks a short random greeting through macOS `say` when a session starts, and registers a `greet` tool the agent can call directly. Audio is macOS-only; on other platforms the extension degrades to a UI notification instead of failing silently or throwing.
+Speaks a short random greeting through macOS `say` when a session starts, and registers a `greet` tool the agent can call directly. Audio is macOS-only; on other platforms the extension degrades to a UI notification instead of failing silently or throwing. Playback is also skipped in [remote sessions](#audio-in-remote-sessions).
 
 ### `audio-summary`
 
@@ -64,7 +64,7 @@ After each agent turn, rephrases the final message for speech using a small mode
 - Spells out acronyms letter-by-letter so `say` doesn't mangle them.
 - Clips the result to a sentence boundary under 300 characters.
 
-`say` reads the clipped, spoken-form text aloud. If other audio is already playing, it chimes and sends a UI notification instead of talking over it. Audio output is macOS-only.
+`say` reads the clipped, spoken-form text aloud. If other audio is already playing, it chimes and sends a UI notification instead of talking over it. Audio output is macOS-only, and is skipped in [remote sessions](#audio-in-remote-sessions) - the summary still arrives as a UI notification.
 
 ### `hooks`
 
@@ -99,4 +99,14 @@ Example `.agents/hooks.json`:
     "Stop": [{ "hooks": [{ "command": "./scripts/summarize-session.sh" }] }]
   }
 }
+```
+
+### Audio in remote sessions
+
+`greeting` and `audio-summary` play nothing when `MOSHI_CLIENT=1` is set in the environment. [Moshi](https://getmoshi.app/docs/terminal-sessions#moshi-client-environment-flag) exports that variable into the remote shell, and audio spoken there would come out of the host the user connected away from. Both extensions keep their UI notifications, so the greeting and the turn summary still reach the terminal as text.
+
+Set the same variable by hand to mute both extensions in any other remote or shared session:
+
+```sh
+export MOSHI_CLIENT=1
 ```

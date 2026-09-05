@@ -8,6 +8,7 @@
  */
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { isAbsolute, relative } from 'node:path';
+import { notifyUser } from '../internals/index.js';
 import {
   asRecord,
   getErrorMessage,
@@ -212,36 +213,30 @@ function registerHooksCommand(pi: ExtensionAPI, state: HookExtensionState): void
       if (args.trim() === 'reload') {
         state.runtime = await loadHookRuntime(ctx.cwd);
       }
-      if (ctx.hasUI) {
-        ctx.ui.notify(formatRuntimeSummary(state.runtime, ctx.cwd), state.runtime.loadError ? 'warning' : 'info');
-      }
+      notifyUser(ctx, formatRuntimeSummary(state.runtime, ctx.cwd), state.runtime.loadError ? 'warning' : 'info');
     }
   });
 }
 
 function notifyLoadResult(runtime: HookRuntime, ctx: ExtensionContext): void {
-  if (!ctx.hasUI) return;
-
   if (runtime.loadError) {
-    ctx.ui.notify(`Failed to load ${runtime.hooksFile ?? '<unknown file>'}: ${runtime.loadError}`, 'warning');
+    notifyUser(ctx, `Failed to load ${runtime.hooksFile ?? '<unknown file>'}: ${runtime.loadError}`, 'warning');
     return;
   }
 
   const hookCount = countHooks(runtime.hooks);
   if (runtime.hooksFile && hookCount > 0) {
-    ctx.ui.notify(`Loaded ${String(hookCount)} hook(s) from ${formatDisplayPath(runtime.hooksFile, ctx.cwd)}`, 'info');
+    notifyUser(ctx, `Loaded ${String(hookCount)} hook(s) from ${formatDisplayPath(runtime.hooksFile, ctx.cwd)}`);
   }
 }
 
 function notifySuccessfulOutput(results: HookCommandResult[], ctx: ExtensionContext): void {
-  if (!ctx.hasUI) return;
-
   results
     .filter(result => result.code === 0)
     .map(formatHookOutput)
     .filter(Boolean)
     .forEach(output => {
-      ctx.ui.notify(output, 'info');
+      notifyUser(ctx, output);
     });
 }
 
@@ -251,7 +246,7 @@ function notifyFailures(eventName: HookEventName, results: HookCommandResult[], 
 }
 
 function notifyFailure(feedback: string, ctx: ExtensionContext): void {
-  if (ctx.hasUI) ctx.ui.notify(feedback, 'warning');
+  notifyUser(ctx, feedback, 'warning');
 }
 
 function formatRuntimeSummary(runtime: HookRuntime, cwd: string): string {
