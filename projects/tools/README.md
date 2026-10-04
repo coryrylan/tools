@@ -33,6 +33,7 @@ with a deterministic check or preset that gates the diff instead.
 | `@coryrylan/tools/pi/greeting`                   | Pi extension - speaks a greeting via macOS `say` on session start.               |
 | `@coryrylan/tools/pi/audio-summary`              | Pi extension - speaks a short summary of each agent turn.                        |
 | `@coryrylan/tools/pi/hooks`                      | Pi extension - Claude-Code-style lifecycle hooks from `.agents/hooks.json`.      |
+| `@coryrylan/tools/pi/tps`                        | Pi extension - approximate output tokens per second in the terminal footer.      |
 
 ## ESLint
 
@@ -173,9 +174,9 @@ gated at 90% across lines, branches, functions, and statements. See
 pi install npm:@coryrylan/tools
 ```
 
-Three [pi](https://pi.dev) coding-agent extensions, shipped as a pi package
+Four [pi](https://pi.dev) coding-agent extensions, shipped as a pi package
 (`pi` manifest key in `package.json`, `pi-package` keyword): `greeting`,
-`audio-summary`, and `hooks`. Pi provides
+`audio-summary`, `hooks`, and `tps`. Pi provides
 `@earendil-works/pi-ai`/`@earendil-works/pi-coding-agent`/`typebox` at
 runtime, so there is nothing extra to install. See
 [src/pi/docs](./src/pi/docs/index.md).

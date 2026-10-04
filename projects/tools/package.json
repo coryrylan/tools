@@ -72,6 +72,10 @@
       "types": "./dist/pi/hooks/index.d.ts",
       "default": "./dist/pi/hooks/index.js"
     },
+    "./pi/tps": {
+      "types": "./dist/pi/tps/index.d.ts",
+      "default": "./dist/pi/tps/index.js"
+    },
     "./package.json": "./package.json"
   },
   "keywords": [
@@ -81,7 +85,8 @@
     "extensions": [
       "./dist/pi/greeting/index.js",
       "./dist/pi/audio-summary/index.js",
-      "./dist/pi/hooks/index.js"
+      "./dist/pi/hooks/index.js",
+      "./dist/pi/tps/index.js"
     ]
   },
   "scripts": {
@@ -148,8 +153,8 @@
     }
   },
   "devDependencies": {
-    "@earendil-works/pi-ai": "0.84.4",
-    "@earendil-works/pi-coding-agent": "0.84.4",
+    "@earendil-works/pi-ai": "1.0.2",
+    "@earendil-works/pi-coding-agent": "1.0.2",
     "@eslint/js": "10.0.1",
     "@eslint/json": "2.0.1",
     "@html-eslint/eslint-plugin": "0.65.0",

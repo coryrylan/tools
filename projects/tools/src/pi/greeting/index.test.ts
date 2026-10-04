@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type {
   ExtensionAPI,
   ExtensionContext,
+  ExtensionToolContext,
   SessionStartEvent,
   ToolDefinition
 } from '@earendil-works/pi-coding-agent';
@@ -35,9 +36,13 @@ function createFakePi(): FakePi {
   return { pi: fakePi as unknown as ExtensionAPI, sessionStartHandlers, tools };
 }
 
-/** Minimal fake `ExtensionContext`, cast narrowly - no field is read by the fake `speak` used in these tests. */
-function createFakeContext(): ExtensionContext {
-  return { hasUI: false } as unknown as ExtensionContext;
+/** Minimal fake `ExtensionToolContext`, cast narrowly - no field is read by the fake `speak` used in these tests. */
+function createFakeContext(): ExtensionToolContext {
+  return {
+    hasUI: false,
+    tools: [],
+    executeTool: () => Promise.reject(new Error('Unexpected nested tool call in greeting test'))
+  } as unknown as ExtensionToolContext;
 }
 
 /**
