@@ -16,7 +16,8 @@ export default defineConfig(
         'vitest/browser': 'src/vitest/browser.ts',
         'pi/greeting/index': 'src/pi/greeting/index.ts',
         'pi/audio-summary/index': 'src/pi/audio-summary/index.ts',
-        'pi/hooks/index': 'src/pi/hooks/index.ts'
+        'pi/hooks/index': 'src/pi/hooks/index.ts',
+        'pi/tps/index': 'src/pi/tps/index.ts'
       }
     }),
     {

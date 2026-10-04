@@ -1,6 +1,6 @@
 # pi
 
-Extensions for the [pi](https://pi.dev) coding agent, shipped together as a pi package instead of three separate npm publishes.
+Extensions for the [pi](https://pi.dev) coding agent, shipped together as one pi package.
 
 ## Usage
 
@@ -22,7 +22,8 @@ Pi resolves the package's `pi` manifest key in `package.json`:
     "extensions": [
       "./dist/pi/greeting/index.js",
       "./dist/pi/audio-summary/index.js",
-      "./dist/pi/hooks/index.js"
+      "./dist/pi/hooks/index.js",
+      "./dist/pi/tps/index.js"
     ]
   }
 }
@@ -30,7 +31,7 @@ Pi resolves the package's `pi` manifest key in `package.json`:
 
 ### Cherry-picking extensions
 
-Installing the package pulls in all three extensions by default. Use pi's package-filtering settings to load a subset - for example, only `hooks`:
+Installing the package pulls in all four extensions by default. Use pi's package-filtering settings to load a subset - for example, only `hooks`:
 
 ```json
 {
@@ -100,6 +101,17 @@ Example `.agents/hooks.json`:
   }
 }
 ```
+
+### `tps`
+
+Displays an approximate output token rate in the terminal footer after each successful assistant message, for example `~42 tok/s`. Rates below 10 use one decimal place; higher rates round to a whole number. It uses the provider's reported output token count, including reasoning tokens when the provider counts them as output.
+
+- With thinking off or a model that does not support reasoning, timing runs from the first nonempty streamed delta to the last. Text, thinking, and tool-call deltas all count; initial response latency and time after the last delta do not.
+- With thinking enabled on a reasoning model, timing runs from assistant message start to message end, including initial response latency.
+
+The previous rate clears when the next assistant message or session starts. Failed or aborted messages, zero output tokens, and streams without a positive measured duration leave the footer empty. Each assistant message in a tool-use turn gets its own measurement; ending the agent turn discards any unfinished measurement and retains the last displayed rate. Headless sessions do not display a status.
+
+To load only this extension, use `"extensions": ["+dist/pi/tps/index.js"]` in the package-filtering settings above. The extension is also available as the deep import `@coryrylan/tools/pi/tps`.
 
 ### Audio in remote sessions
 
