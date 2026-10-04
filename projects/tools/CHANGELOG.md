@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/coryrylan/tools/compare/tools-v1.2.0...tools-v1.3.0) (2026-10-04)
+
+### Features
+
+* **tools:** tps ([e2b248b](https://github.com/coryrylan/tools/commit/e2b248ba1bd251da74398e0503ec989a8b615534))
+
 ## [1.2.0](https://github.com/coryrylan/tools/compare/tools-v1.1.1...tools-v1.2.0) (2026-09-05)
 
 ### Features
