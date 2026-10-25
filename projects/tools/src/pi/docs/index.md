@@ -59,13 +59,25 @@ Speaks a short random greeting through macOS `say` when a session starts, and re
 
 ### `audio-summary`
 
-After each agent turn, rephrases the final message for speech using a small model (default `spark/gemma-4-e2b`, falling back to whatever model the session is already using if that one isn't available), then:
+After each agent turn, rephrases the final message for speech using the current session model, then:
 
 - Strips markdown deterministically (no LLM round-trip for formatting).
 - Spells out acronyms letter-by-letter so `say` doesn't mangle them.
 - Clips the result to a sentence boundary under 300 characters.
 
 `say` reads the clipped, spoken-form text aloud. If other audio is already playing, it chimes and sends a UI notification instead of talking over it. Audio output is macOS-only, and is skipped in [remote sessions](#audio-in-remote-sessions) - the summary still arrives as a UI notification.
+
+To use a separate summary model, add `audioSummary` to Pi's `settings.json`:
+
+```json
+{
+  "audioSummary": {
+    "model": "spark/gemma-4-e2b"
+  }
+}
+```
+
+The model reference is `provider/model-id`. Project settings override agent-directory settings. Omit `audioSummary.model` to use the current session model. Empty or non-string values also use the session model; malformed or unknown model references produce a notification and fall back to it. Restart Pi after editing settings.
 
 ### `hooks`
 

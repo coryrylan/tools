@@ -12,31 +12,40 @@ import {
 import { clipToSentence, spellAcronyms, stripMarkdown } from './speech-text.js';
 
 const STATUS_KEY = 'audio-summary';
-// '<provider>/<id>' from models.json; undefined falls back to the current model.
-const SUMMARY_MODEL: string | undefined = 'spark/gemma-4-e2b';
 const MAX_OUTPUT_CHARS = 300;
-// Measured: gemma-4-e2b spends 600-700 tokens reasoning before it emits any prose, and llama.cpp
-// accepts but ignores reasoning_effort - too tight a cap returns an empty summary, not a short one.
-// MAX_OUTPUT_CHARS is enforced by clipping the result instead.
 const SUMMARY_MAX_TOKENS = 2048;
 
 export default function audioSummaryExtension(pi: ExtensionAPI): void {
   pi.on('agent_end', async (event, ctx) => {
     try {
-      await handleAgentEnd(event, ctx);
+      await handleAgentEnd(event, ctx, getSummaryModelReference(pi));
     } finally {
       setStatus(ctx, undefined);
     }
   });
 }
 
-async function handleAgentEnd(event: AgentEndEvent, ctx: ExtensionContext): Promise<void> {
+function getSummaryModelReference(pi: ExtensionAPI): string | undefined {
+  const settings = pi.getSettings();
+  if (!('audioSummary' in settings)) return undefined;
+
+  const config = settings.audioSummary;
+  if (typeof config !== 'object' || config === null || !('model' in config)) return undefined;
+
+  return typeof config.model === 'string' ? config.model.trim() || undefined : undefined;
+}
+
+async function handleAgentEnd(
+  event: AgentEndEvent,
+  ctx: ExtensionContext,
+  summaryModel: string | undefined
+): Promise<void> {
   const text = extractLastMessageText(event.messages);
   if (!text?.trim()) return;
 
   if (isSummaryDeliveryBlocked(ctx)) return;
 
-  const summary = (await summarizeWithModel(text, ctx))?.trim();
+  const summary = (await summarizeWithModel(text, ctx, summaryModel))?.trim();
   chimeIfSystemAudioInactive();
   const spoken = summary || text.trim();
   await speakWithSay(clipToSentence(stripMarkdown(spoken), MAX_OUTPUT_CHARS), ctx);
@@ -55,14 +64,18 @@ export function extractLastMessageText(messages: AgentEndEvent['messages']): str
   return lastPart.text;
 }
 
-async function summarizeWithModel(turnText: string, ctx: ExtensionContext): Promise<string | undefined> {
-  const model = selectSummaryModel(ctx);
+async function summarizeWithModel(
+  turnText: string,
+  ctx: ExtensionContext,
+  summaryModel: string | undefined
+): Promise<string | undefined> {
+  const model = selectSummaryModel(ctx, summaryModel);
   if (!model) return undefined;
 
   const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
   if (!auth.ok) return undefined;
 
-  setStatus(ctx, `✏️ summarizing${SUMMARY_MODEL ? ` (${SUMMARY_MODEL})` : ''}`);
+  setStatus(ctx, `✏️ summarizing (${model.provider}/${model.id})`);
   try {
     const response = await complete(model, buildSummaryContext(turnText), {
       ...(auth.apiKey === undefined ? {} : { apiKey: auth.apiKey }),
@@ -100,35 +113,23 @@ export function extractAssistantMessageText(response: AssistantMessage): string 
     .join(' ');
 }
 
-/**
- * Resolves the summarization model: {@link SUMMARY_MODEL} parsed as
- * `<provider>/<id>` and looked up in `ctx.modelRegistry`, falling back to
- * `ctx.model` when unset, malformed, or unresolved.
- */
-export function selectSummaryModel(ctx: ExtensionContext): Model<Api> | undefined {
-  const currentModel = ctx.model;
-  if (!SUMMARY_MODEL) return currentModel;
+/** Resolves a provider/model reference, falling back to the session model when unset or unresolved. */
+export function selectSummaryModel(ctx: ExtensionContext, summaryModel?: string): Model<Api> | undefined {
+  if (!summaryModel) return ctx.model;
 
-  const slashIndex = SUMMARY_MODEL.indexOf('/');
-  if (slashIndex < 0) {
-    notifyUnresolvedSummaryModel(ctx);
-    return currentModel; // need a '<provider>/<id>' ref; a bare id can't be resolved
-  }
+  const slashIndex = summaryModel.indexOf('/');
+  const resolvedModel =
+    slashIndex > 0 && slashIndex < summaryModel.length - 1
+      ? ctx.modelRegistry.find(summaryModel.slice(0, slashIndex), summaryModel.slice(slashIndex + 1))
+      : undefined;
+  if (!resolvedModel) notifyUnresolvedSummaryModel(ctx, summaryModel);
 
-  const provider = SUMMARY_MODEL.slice(0, slashIndex);
-  const modelId = SUMMARY_MODEL.slice(slashIndex + 1);
-  const resolvedModel = ctx.modelRegistry.find(provider, modelId);
-  if (!resolvedModel) {
-    notifyUnresolvedSummaryModel(ctx);
-    return currentModel;
-  }
-
-  return resolvedModel;
+  return resolvedModel ?? ctx.model;
 }
 
-/** Notifies the user once that {@link SUMMARY_MODEL} didn't resolve and summarization is using the current model instead. */
-export function notifyUnresolvedSummaryModel(ctx: ExtensionContext): void {
-  notifyUser(ctx, `⚠️ SUMMARY_MODEL "${String(SUMMARY_MODEL)}" did not resolve; falling back to the current model`);
+/** Notifies the user when a configured summary model cannot be resolved. */
+export function notifyUnresolvedSummaryModel(ctx: ExtensionContext, summaryModel?: string): void {
+  notifyUser(ctx, `⚠️ audioSummary.model "${String(summaryModel)}" did not resolve; falling back to the current model`);
 }
 
 /**

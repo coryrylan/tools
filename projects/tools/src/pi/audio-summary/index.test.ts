@@ -1,5 +1,6 @@
 import type { AssistantMessage } from '@earendil-works/pi-ai';
 import type { AgentEndEvent, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { SettingsManager } from '@earendil-works/pi-coding-agent';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import audioSummaryExtension, {
   extractAssistantMessageText,
@@ -14,9 +15,10 @@ afterEach(() => {
 
 type AgentEndHandler = (event: AgentEndEvent, ctx: ExtensionContext) => Promise<void> | void;
 
-function createStubExtensionApi(): { api: ExtensionAPI; handlers: Map<string, unknown> } {
+function createStubExtensionApi(settings: object = {}): { api: ExtensionAPI; handlers: Map<string, unknown> } {
   const handlers = new Map<string, unknown>();
   const api = {
+    getSettings: () => settings,
     on: (eventName: string, handler: unknown) => {
       handlers.set(eventName, handler);
     }
@@ -212,21 +214,54 @@ describe('extractAssistantMessageText', () => {
 });
 
 describe('selectSummaryModel', () => {
-  it('should return the model resolved from SUMMARY_MODEL when the registry finds it', () => {
+  it('should use ctx.model without a registry lookup or notification when the summary model is undefined', () => {
+    const currentModel = { id: 'current-session-model' };
+    const findModel = vi.fn();
+    const notifications: Array<[string, string | undefined]> = [];
+    const ctx = createFakeContext({ model: currentModel, findModel, notifications });
+
+    expect(selectSummaryModel(ctx, undefined)).toBe(currentModel);
+    expect(findModel).not.toHaveBeenCalled();
+    expect(notifications).toEqual([]);
+  });
+
+  it('should return undefined when neither a summary model nor a session model is available', () => {
+    expect(selectSummaryModel(createFakeContext())).toBeUndefined();
+  });
+
+  it('should return the configured model when the registry finds it', () => {
     const resolvedModel = { id: 'gemma-4-e2b' };
     const findModel = vi.fn(() => resolvedModel);
     const ctx = createFakeContext({ findModel });
 
-    expect(selectSummaryModel(ctx)).toBe(resolvedModel);
+    expect(selectSummaryModel(ctx, 'spark/gemma-4-e2b')).toBe(resolvedModel);
     expect(findModel).toHaveBeenCalledWith('spark', 'gemma-4-e2b');
   });
 
-  it('should fall back to ctx.model and notify when SUMMARY_MODEL does not resolve', () => {
+  it('should preserve slashes within the model id', () => {
+    const resolvedModel = { id: 'organization/model' };
+    const findModel = vi.fn(() => resolvedModel);
+    const ctx = createFakeContext({ findModel });
+
+    expect(selectSummaryModel(ctx, 'spark/organization/model')).toBe(resolvedModel);
+    expect(findModel).toHaveBeenCalledWith('spark', 'organization/model');
+  });
+
+  it.each(['bare-model', '/model', 'spark/'])('should fall back without a registry lookup for %s', summaryModel => {
+    const currentModel = { id: 'current-session-model' };
+    const findModel = vi.fn();
+    const ctx = createFakeContext({ model: currentModel, findModel });
+
+    expect(selectSummaryModel(ctx, summaryModel)).toBe(currentModel);
+    expect(findModel).not.toHaveBeenCalled();
+  });
+
+  it('should fall back to ctx.model and notify when the configured model does not resolve', () => {
     const currentModel = { id: 'current-session-model' };
     const notifications: Array<[string, string | undefined]> = [];
     const ctx = createFakeContext({ model: currentModel, notifications, findModel: () => undefined });
 
-    expect(selectSummaryModel(ctx)).toBe(currentModel);
+    expect(selectSummaryModel(ctx, 'spark/gemma-4-e2b')).toBe(currentModel);
     expect(notifications).toHaveLength(1);
     expect(notifications[0]?.[0]).toContain('spark/gemma-4-e2b');
   });
@@ -237,10 +272,10 @@ describe('notifyUnresolvedSummaryModel', () => {
     const notifications: Array<[string, string | undefined]> = [];
     const ctx = createFakeContext({ hasUI: true, notifications });
 
-    notifyUnresolvedSummaryModel(ctx);
+    notifyUnresolvedSummaryModel(ctx, 'spark/gemma-4-e2b');
 
     expect(notifications).toEqual([
-      ['⚠️ SUMMARY_MODEL "spark/gemma-4-e2b" did not resolve; falling back to the current model', 'info']
+      ['⚠️ audioSummary.model "spark/gemma-4-e2b" did not resolve; falling back to the current model', 'info']
     ]);
   });
 
@@ -248,13 +283,67 @@ describe('notifyUnresolvedSummaryModel', () => {
     const notifications: Array<[string, string | undefined]> = [];
     const ctx = createFakeContext({ hasUI: false, notifications });
 
-    notifyUnresolvedSummaryModel(ctx);
+    notifyUnresolvedSummaryModel(ctx, 'spark/gemma-4-e2b');
 
     expect(notifications).toEqual([]);
   });
 });
 
 describe('audioSummaryExtension with playback suppressed', () => {
+  it('should resolve the summary model from merged Pi settings even without a session model', async () => {
+    vi.stubEnv('MOSHI_CLIENT', '1');
+    const settingsManager = SettingsManager.fromStorage({
+      withLock: (scope, callback) => {
+        callback(
+          JSON.stringify({
+            audioSummary: { model: scope === 'global' ? 'spark/default-model' : 'spark/project-model' }
+          })
+        );
+      }
+    });
+    const { api, handlers } = createStubExtensionApi(settingsManager.getSettings());
+    audioSummaryExtension(api);
+    const resolvedModel = { id: 'project-model' };
+    const findModel = vi.fn(() => resolvedModel);
+    const ctx = createFakeContext({ findModel });
+    const getAuth = vi.spyOn(ctx.modelRegistry, 'getApiKeyAndHeaders');
+
+    await getCapturedAgentEndHandler(handlers)(
+      { type: 'agent_end', messages: [{ role: 'user', content: 'Shipped the fix.', timestamp: 0 }] },
+      ctx
+    );
+
+    expect(findModel).toHaveBeenCalledWith('spark', 'project-model');
+    expect(getAuth).toHaveBeenCalledWith(resolvedModel);
+  });
+
+  it.each([
+    {},
+    { audioSummary: null },
+    { audioSummary: 'invalid' },
+    { audioSummary: {} },
+    { audioSummary: { model: null } },
+    { audioSummary: { model: 123 } },
+    { audioSummary: { model: '' } },
+    { audioSummary: { model: '   ' } }
+  ])('should use ctx.model when settings have no usable summary model: %j', async settings => {
+    vi.stubEnv('MOSHI_CLIENT', '1');
+    const { api, handlers } = createStubExtensionApi(settings);
+    audioSummaryExtension(api);
+    const currentModel = { id: 'current-session-model' };
+    const findModel = vi.fn();
+    const ctx = createFakeContext({ model: currentModel, findModel });
+    const getAuth = vi.spyOn(ctx.modelRegistry, 'getApiKeyAndHeaders');
+
+    await getCapturedAgentEndHandler(handlers)(
+      { type: 'agent_end', messages: [{ role: 'user', content: 'Shipped the fix.', timestamp: 0 }] },
+      ctx
+    );
+
+    expect(findModel).not.toHaveBeenCalled();
+    expect(getAuth).toHaveBeenCalledWith(currentModel);
+  });
+
   it('should notify the summary without reaching the speaking status when MOSHI_CLIENT is 1', async () => {
     vi.stubEnv('MOSHI_CLIENT', '1');
     const { api, handlers } = createStubExtensionApi();
