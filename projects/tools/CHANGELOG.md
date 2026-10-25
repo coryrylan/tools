@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/coryrylan/tools/compare/tools-v1.3.0...tools-v1.4.0) (2026-10-25)
+
+### Features
+
+* **tools:** enhance model selection and notification handling ([ad7cc7c](https://github.com/coryrylan/tools/commit/ad7cc7c9f005355aeaa90602d5851a7da9b06234))
+
 ## [1.3.0](https://github.com/coryrylan/tools/compare/tools-v1.2.0...tools-v1.3.0) (2026-10-04)
 
 ### Features
