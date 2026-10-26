@@ -127,8 +127,8 @@ importers:
         specifier: 2.0.1
         version: 2.0.1
       '@html-eslint/eslint-plugin':
-        specifier: 0.65.0
-        version: 0.65.0(eslint@10.9.1(jiti@2.7.0)(supports-color@10.2.2))
+        specifier: 0.67.0
+        version: 0.67.0(eslint@10.9.1(jiti@2.7.0)(supports-color@10.2.2))
       '@html-eslint/parser':
         specifier: 0.65.0
         version: 0.65.0
@@ -827,8 +827,8 @@ packages:
     resolution: {integrity: sha512-/dcMywhcO7+CvyV5oUGUkh4641ZyeJyncQas+Ulq7z9fXorTstMrApIzIUdV9TNgkwZZ97Rd8/8XbXkxgoJo6A==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@html-eslint/core@0.65.0':
-    resolution: {integrity: sha512-UJUf0dDI6xq6iitksPXrfLwu2Gc143LGFHMlVnRPZxkoLz1xIzKbkQVxrqxqNmandsSmhWfkGw//U2BsBH/QRw==}
+  '@html-eslint/core@0.67.0':
+    resolution: {integrity: sha512-MPoKw4woCkuFYs2xdt0vEjzGbUzU8lxeTZkxyrtHM+zZlaK/u/lqcIapZmyCTQBqNE0H9J8zc9TmXjygfHcuXg==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   '@html-eslint/eslint-plugin@0.61.0':
@@ -837,8 +837,8 @@ packages:
     peerDependencies:
       eslint: '>=8.0.0 || ^10.0.0-0'
 
-  '@html-eslint/eslint-plugin@0.65.0':
-    resolution: {integrity: sha512-zYa4ARNbkp/GPlIY+1NFV5v6H3EDs+jby4/rFnZDaS/S3mFEvBail4+dPqugHljrBmAZ0UkxMATR696ypRvPCQ==}
+  '@html-eslint/eslint-plugin@0.67.0':
+    resolution: {integrity: sha512-gr2wKoS1OOZa6uL8DDNCjvPyTu6mWsyQJ/WXmvP/DeFRe6pdumsb8ePYfP7qZW5741MtVd0OpLbxa82XivxxWQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: '>=8.0.0 || ^10.0.0-0'
@@ -849,11 +849,14 @@ packages:
   '@html-eslint/parser@0.65.0':
     resolution: {integrity: sha512-sMZ8D60uQ/yLKViiqkzX3vnpBwcBNE8x/Ax8roAdrLiErkJ4wLMdXq+kmRm0rqfTuC0mqPJ+7uRTAgUB6wXg2w==}
 
+  '@html-eslint/parser@0.67.0':
+    resolution: {integrity: sha512-ejdtqLqclQPDfivgsD2yWHXa+FyyEytMlGNNfiHw/UbUeV9tn1hBjIZLJ5VvzjO0IweaAIWIZKlEPgKT6tYP8A==}
+
   '@html-eslint/template-parser@0.61.0':
     resolution: {integrity: sha512-mPN9UsW02m+WtDQb48FLzTCVDCBuXboRzDO37yPipp6ai98IDJBslrFjmHHh8dwBIs9QlQXWpTdlRiV3NvTwtA==}
 
-  '@html-eslint/template-parser@0.65.0':
-    resolution: {integrity: sha512-gUc9D4PaV5uvQjR21Q1wumbe2Qyf6decJjCZCpM77kZ7mMprIDvnF4LgCJBkTldidc4j1GzJvqkJ5e+r+skFyw==}
+  '@html-eslint/template-parser@0.67.0':
+    resolution: {integrity: sha512-fvFAuAaKzkg9deV69uT1NoVJSwXTu3mvGDWzlZKe+xwm5JnkbWC626eyDRlAQDzff2/zX7tWFq4EMgOoZmgtRA==}
 
   '@html-eslint/template-syntax-parser@0.61.0':
     resolution: {integrity: sha512-m5XAYPRyX/uRNkcPaBBrM+k2SfWHhjkTLFPMz+T7CiH3nbPm7wolcudMqDfW9QoexcxCQke+xJ/ZZz/PDOykKg==}
@@ -861,11 +864,17 @@ packages:
   '@html-eslint/template-syntax-parser@0.65.0':
     resolution: {integrity: sha512-Kh7TFOM4cYcutzGZdWKxnZJpWpuZwu4hcSxbn/PHVBgDOytKOwpuPvCKn1+B11fSFxLhrrR3RHvsBVknntpcbA==}
 
+  '@html-eslint/template-syntax-parser@0.67.0':
+    resolution: {integrity: sha512-leHUXnpFgRSR3o7rpw5OtOVGfzcChIgrhXDgPlBwdoL7V4+5KZjxGLJAPVwbj7sVVNrSWynlIQ1Wn4FuNKxZhw==}
+
   '@html-eslint/types@0.61.0':
     resolution: {integrity: sha512-1cVh4dHkHwJqKrd/8t5U3wkzm0osTax+TLrmmtCaotYXQAJlZ2Cp31GQHY+lF17p71iHp3NoNYisUblV/lGzBg==}
 
   '@html-eslint/types@0.65.0':
     resolution: {integrity: sha512-bWMTSRwFXwvturEYvA5ng43+jpFh9FTpAgC2HE3O0ijsde40VcoO6DtcjFl7QY8AW5O/PeisDDl1Hbe5q89wsg==}
+
+  '@html-eslint/types@0.67.0':
+    resolution: {integrity: sha512-8w9V0sTm2DGLh2uslL7+Un9g/FHNcevgouiTLhlAJoBhhGOK5+fX76QCKdWbgmpudNGo8Nh1kHKsJP3a6twzXA==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -2266,6 +2275,9 @@ packages:
 
   es-html-parser@0.3.1:
     resolution: {integrity: sha512-YTEasG4xt7FEN4b6qJIPbFo/fzQ5kjRMEQ33QMqSXTvfXqAbC2rHxo32x2/1Rhq7Mlu6wI3MIpM5Kf2VHPXrUQ==}
+
+  es-html-parser@0.3.2:
+    resolution: {integrity: sha512-/xo/9AOatFv+hn1ALFoDfNX1zK91O4hLlv3JMSzUA4MRbErKRgVjcE48KBcoO896WkW4b4BpLS2H/F9DXaTBag==}
 
   es-module-lexer@2.3.0:
     resolution: {integrity: sha512-KLdwQm2NvGLDkQDCGvmiQrhkd0JbMzXthwQAUgWjQuQdBLFa3eiBP5arXZyA+f8x+x7OXgud6bq2rxjGtHV2tw==}
@@ -5270,9 +5282,9 @@ snapshots:
       '@html-eslint/types': 0.61.0
       html-standard: 0.0.13
 
-  '@html-eslint/core@0.65.0':
+  '@html-eslint/core@0.67.0':
     dependencies:
-      '@html-eslint/types': 0.65.0
+      '@html-eslint/types': 0.67.0
       html-standard: 0.0.13
 
   '@html-eslint/eslint-plugin@0.61.0(eslint@10.9.1(jiti@2.7.0)(supports-color@10.2.2))':
@@ -5287,14 +5299,14 @@ snapshots:
       eslint: 10.9.1(jiti@2.7.0)(supports-color@10.2.2)
       html-standard: 0.0.13
 
-  '@html-eslint/eslint-plugin@0.65.0(eslint@10.9.1(jiti@2.7.0)(supports-color@10.2.2))':
+  '@html-eslint/eslint-plugin@0.67.0(eslint@10.9.1(jiti@2.7.0)(supports-color@10.2.2))':
     dependencies:
       '@eslint/plugin-kit': 0.4.1
-      '@html-eslint/core': 0.65.0
-      '@html-eslint/parser': 0.65.0
-      '@html-eslint/template-parser': 0.65.0
-      '@html-eslint/template-syntax-parser': 0.65.0
-      '@html-eslint/types': 0.65.0
+      '@html-eslint/core': 0.67.0
+      '@html-eslint/parser': 0.67.0
+      '@html-eslint/template-parser': 0.67.0
+      '@html-eslint/template-syntax-parser': 0.67.0
+      '@html-eslint/types': 0.67.0
       '@rviscomi/capo.js': 2.1.0
       eslint: 10.9.1(jiti@2.7.0)(supports-color@10.2.2)
       html-standard: 0.0.13
@@ -5313,15 +5325,22 @@ snapshots:
       css-tree: 3.2.1
       es-html-parser: 0.3.1
 
+  '@html-eslint/parser@0.67.0':
+    dependencies:
+      '@html-eslint/template-syntax-parser': 0.67.0
+      '@html-eslint/types': 0.67.0
+      css-tree: 3.2.1
+      es-html-parser: 0.3.2
+
   '@html-eslint/template-parser@0.61.0':
     dependencies:
       '@html-eslint/types': 0.61.0
       es-html-parser: 0.3.1
 
-  '@html-eslint/template-parser@0.65.0':
+  '@html-eslint/template-parser@0.67.0':
     dependencies:
-      '@html-eslint/types': 0.65.0
-      es-html-parser: 0.3.1
+      '@html-eslint/types': 0.67.0
+      es-html-parser: 0.3.2
 
   '@html-eslint/template-syntax-parser@0.61.0':
     dependencies:
@@ -5330,6 +5349,10 @@ snapshots:
   '@html-eslint/template-syntax-parser@0.65.0':
     dependencies:
       '@html-eslint/types': 0.65.0
+
+  '@html-eslint/template-syntax-parser@0.67.0':
+    dependencies:
+      '@html-eslint/types': 0.67.0
 
   '@html-eslint/types@0.61.0':
     dependencies:
@@ -5342,6 +5365,12 @@ snapshots:
       '@types/css-tree': 2.3.11
       '@types/estree': 1.0.9
       es-html-parser: 0.3.1
+
+  '@html-eslint/types@0.67.0':
+    dependencies:
+      '@types/css-tree': 2.3.11
+      '@types/estree': 1.0.9
+      es-html-parser: 0.3.2
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -6617,6 +6646,8 @@ snapshots:
       is-arrayish: 0.2.1
 
   es-html-parser@0.3.1: {}
+
+  es-html-parser@0.3.2: {}
 
   es-module-lexer@2.3.0: {}
 
