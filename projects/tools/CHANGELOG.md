@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/coryrylan/tools/compare/tools-v1.4.0...tools-v1.5.0) (2026-10-30)
+
+### Features
+
+* **tools:** update hook execution to inherit path and improve test coverage ([0e761f1](https://github.com/coryrylan/tools/commit/0e761f19a7405f664c0dbeee3cd0a71164286952))
+
 ## [1.4.0](https://github.com/coryrylan/tools/compare/tools-v1.3.0...tools-v1.4.0) (2026-10-25)
 
 ### Features
