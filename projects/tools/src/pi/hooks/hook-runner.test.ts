@@ -183,6 +183,29 @@ describe('formatHookFeedback', () => {
 });
 
 describe('runMatchingHooks', () => {
+  it('should inherit PATH without starting a login shell', async () => {
+    const ctx = createFakeContext();
+    const runtime: HookRuntime = {
+      hooks: {
+        SessionStart: [
+          { hooks: [createHookCommand({ command: 'shopt -q login_shell && exit 7; printf "%s" "$PATH"' })] }
+        ]
+      }
+    };
+
+    const [result] = await runMatchingHooks({
+      eventName: 'SessionStart',
+      matcherTarget: 'startup',
+      payload: createBasePayload({ eventName: 'SessionStart', ctx, runtime }),
+      runtime,
+      ctx
+    });
+
+    expect(result?.code).toBe(0);
+    expect(result?.stdout).toBe(process.env['PATH']);
+    expect(result?.stderr).toBe('');
+  });
+
   it('should run a matching command hook and capture its stdout and exit code', async () => {
     const ctx = createFakeContext();
     const runtime: HookRuntime = {

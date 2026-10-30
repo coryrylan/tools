@@ -1,10 +1,9 @@
 /**
  * Claude-Code-style lifecycle hooks from `.agents/hooks.json`, run via
- * `bash -lc` with stdin JSON. Exit 2 blocks PreToolUse; Stop failures
+ * `bash -c` with inherited environment and stdin JSON. Exit 2 blocks PreToolUse; Stop failures
  * queue one follow-up message.
  *
- * @see https://docs.claude.com/en/docs/claude-code/hooks - mirrored for
- * compatibility.
+ * @see https://docs.claude.com/en/docs/claude-code/hooks
  */
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { isAbsolute, relative } from 'node:path';
