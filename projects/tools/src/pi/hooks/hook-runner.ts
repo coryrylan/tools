@@ -101,7 +101,7 @@ function buildHookProcessEnv(cwd: string): NodeJS.ProcessEnv {
 }
 
 function spawnHookProcess(hook: HookCommand, cwd: string): ChildProcessWithoutNullStreams {
-  return spawn('bash', ['-lc', hook.command], {
+  return spawn('bash', ['-c', hook.command], {
     cwd,
     env: buildHookProcessEnv(cwd),
     detached: process.platform !== 'win32',
