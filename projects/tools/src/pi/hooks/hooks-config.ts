@@ -1,8 +1,13 @@
-import { readFile, stat } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
-
-/** Path to the project hooks manifest, resolved relative to a project root found by walking up from `cwd`. */
-const HOOKS_FILE = '.agents/hooks.json';
+import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { readFile, realpath } from 'node:fs/promises';
+import {
+  approveProjectHooks,
+  findHooksFile,
+  isHookContextCurrent,
+  isProjectTrusted,
+  validateHookRuntime,
+  type HookAuthorization
+} from './hook-trust.js';
 
 /** Timeout applied to a command hook when `.agents/hooks.json` omits `timeout`. */
 export const DEFAULT_TIMEOUT_SECONDS = 60;
@@ -34,63 +39,65 @@ export interface HookRuntime {
   projectRoot?: string | undefined;
   hooks: HookGroupsByEvent;
   loadError?: string | undefined;
+  disabledReason?: string | undefined;
+  authorization?: HookAuthorization | undefined;
 }
 
-/**
- * Loads and parses `.agents/hooks.json` for the project containing `cwd`.
- * Never throws - a missing file yields an empty runtime; a malformed file
- * yields one with `loadError` set so the extension warns instead of
- * crashing.
- */
-export async function loadHookRuntime(cwd: string): Promise<HookRuntime> {
-  const hooksFile = await findHooksFile(cwd);
-
-  if (!hooksFile) {
-    return { hooks: {} };
+/** Loads only explicitly authorized cwd-local hooks. Missing files and failures never execute commands. */
+export async function loadHookRuntime(ctx: ExtensionContext, controller = new AbortController()): Promise<HookRuntime> {
+  if (!isProjectTrusted(ctx)) {
+    return { hooks: {}, disabledReason: 'Pi project trust is denied or unavailable.' };
   }
 
-  const projectRoot = dirname(dirname(hooksFile));
-
+  let hooksFile: string | undefined;
   try {
-    return {
-      hooksFile,
-      projectRoot,
-      hooks: parseHooksJson(JSON.parse(await readFile(hooksFile, 'utf8')))
+    const authorization: HookAuthorization = {
+      cwd: ctx.cwd,
+      projectRoot: await realpath(ctx.cwd),
+      sessionId: ctx.sessionManager.getSessionId(),
+      controller
     };
+    const resolution = await findHooksFile(authorization.projectRoot);
+    if (resolution.disabledReason) return { hooks: {}, disabledReason: resolution.disabledReason };
+    hooksFile = resolution.path;
+    if (!hooksFile) return { hooks: {} };
+
+    return await loadAuthorizedHooks({ ctx, authorization, hooksFile });
   } catch (error) {
+    // Filesystem/configuration boundary: invalid JSON, inaccessible paths, and trust-store failures disable hooks.
+    return { hooksFile, hooks: {}, loadError: getErrorMessage(error) };
+  }
+}
+
+interface LoadAuthorizedHooksOptions {
+  ctx: ExtensionContext;
+  authorization: HookAuthorization;
+  hooksFile: string;
+}
+
+async function loadAuthorizedHooks({
+  ctx,
+  authorization,
+  hooksFile
+}: LoadAuthorizedHooksOptions): Promise<HookRuntime> {
+  const approval = isHookContextCurrent(authorization, ctx)
+    ? await approveProjectHooks(authorization, ctx)
+    : 'unresolved';
+  if (approval !== 'approved') {
     return {
-      hooksFile,
-      projectRoot,
       hooks: {},
-      loadError: getErrorMessage(error)
+      disabledReason:
+        approval === 'denied'
+          ? 'Pi project trust or session-only hook consent was denied.'
+          : 'No explicit hook consent. Save Pi project trust with /trust and restart, or allow hooks in the TUI.'
     };
   }
-}
 
-/** Walks up from `cwd` looking for `.agents/hooks.json`, stopping at the filesystem root. */
-export async function findHooksFile(cwd: string): Promise<string | undefined> {
-  let current = resolve(cwd);
-
-  for (;;) {
-    const hooksFile = join(current, HOOKS_FILE);
-    if (await isFile(hooksFile)) {
-      return hooksFile;
-    }
-
-    const parent = dirname(current);
-    if (parent === current) {
-      return undefined;
-    }
-    current = parent;
-  }
-}
-
-async function isFile(path: string): Promise<boolean> {
-  try {
-    return (await stat(path)).isFile();
-  } catch {
-    return false;
-  }
+  const runtime: HookRuntime = { hooksFile, projectRoot: authorization.projectRoot, hooks: {}, authorization };
+  if (!(await validateHookRuntime(runtime, ctx))) return runtime;
+  const hooks = parseHooksJson(JSON.parse(await readFile(hooksFile, 'utf8')));
+  if (await validateHookRuntime(runtime, ctx)) runtime.hooks = hooks;
+  return runtime;
 }
 
 /** Parses the `hooks` object of a `.agents/hooks.json` payload, dropping anything malformed rather than throwing. */

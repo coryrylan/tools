@@ -90,7 +90,13 @@ Claude-Code-style lifecycle hooks, configured from a project's `.agents/hooks.js
 | `PostToolUse`  | Runs after a tool call; appends failure output to the result.  |
 | `Stop`         | Runs when the agent stops; failures queue a follow-up message. |
 
-Each hook matches tool names with a regex, has its own `timeout` in seconds (default 60), and receives a JSON payload on stdin describing the event. The `/hooks` command shows the active configuration or reloads it after an edit.
+Each hook matches tool names with a regular expression, has its own `timeout` in seconds (default 60), and receives a JSON payload on stdin describing the event. The `/hooks` command shows the active configuration; `/hooks reload` reloads it without running `SessionStart`.
+
+Hooks require Pi project trust **and explicit authorization**. Saved Pi trust enables hooks in interactive and unattended sessions. Without a saved decision, only the TUI can ask for session-only hook consent. Print, JSON, and RPC modes never approve hooks implicitly. A saved denial or `ctx.isProjectTrusted() !== true` disables hooks.
+
+The loader checks only the canonical working directory's `.agents/hooks.json`. It never searches ancestors, even in Git repositories. Start Pi at the project root to use its hooks. Configuration symlinks must stay within that directory. Session changes and reloads clear prior authorization; a directory change requires reloading and authorization for the new directory.
+
+Commands use non-login `bash --noprofile --norc -c` with a filtered environment, not the full Pi environment. Host-controlled `PI_HOOKS_ENV_ALLOW` can opt in extra variable names. Hooks execute directly, outside agent tool-call guards, with Pi's OS permissions. Trust and environment filtering do not replace OS isolation.
 
 Example `.agents/hooks.json`:
 
@@ -100,16 +106,16 @@ Example `.agents/hooks.json`:
     "PreToolUse": [
       {
         "matcher": "Bash",
-        "hooks": [{ "command": "./scripts/check-command.sh", "timeout": 5 }]
+        "hooks": [{ "type": "command", "command": "./scripts/check-command.sh", "timeout": 5 }]
       }
     ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "command": "./scripts/lint-changed.sh" }]
+        "hooks": [{ "type": "command", "command": "./scripts/lint-changed.sh" }]
       }
     ],
-    "Stop": [{ "hooks": [{ "command": "./scripts/summarize-session.sh" }] }]
+    "Stop": [{ "hooks": [{ "type": "command", "command": "./scripts/summarize-session.sh" }] }]
   }
 }
 ```

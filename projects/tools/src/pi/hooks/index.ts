@@ -1,13 +1,11 @@
 /**
- * Claude-Code-style lifecycle hooks from `.agents/hooks.json`, run via
- * `bash -c` with inherited environment and stdin JSON. Exit 2 blocks PreToolUse; Stop failures
- * queue one follow-up message.
- *
+ * Explicitly authorized `.agents/hooks.json` lifecycle commands with filtered environment and stdin JSON.
  * @see https://docs.claude.com/en/docs/claude-code/hooks
  */
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { isAbsolute, relative } from 'node:path';
 import { notifyUser } from '../internals/index.js';
+import { disableHooks, reportHooksDisabled, validateHookRuntime } from './hook-trust.js';
 import {
   asRecord,
   getErrorMessage,
@@ -32,12 +30,16 @@ import {
 interface HookExtensionState {
   runtime: HookRuntime;
   stopHookFollowUpActive: boolean;
+  loadController?: AbortController;
 }
 
 /** Registers the SessionStart/PreToolUse/PostToolUse/Stop lifecycle handlers and the `/hooks` command. */
 export default function agentsHooksExtension(pi: ExtensionAPI): void {
   const state: HookExtensionState = { runtime: { hooks: {} }, stopHookFollowUpActive: false };
 
+  pi.on('session_shutdown', () => {
+    resetRuntime(state);
+  });
   registerSessionStartHandler(pi, state);
   registerPreToolUseHandler(pi, state);
   registerPostToolUseHandler(pi, state);
@@ -47,7 +49,7 @@ export default function agentsHooksExtension(pi: ExtensionAPI): void {
 
 function registerSessionStartHandler(pi: ExtensionAPI, state: HookExtensionState): void {
   pi.on('session_start', async (event, ctx) => {
-    state.runtime = await loadHookRuntime(ctx.cwd);
+    if (!(await reloadRuntime(state, ctx))) return;
     notifyLoadResult(state.runtime, ctx);
 
     const results = await runMatchingHooks({
@@ -210,16 +212,46 @@ function registerHooksCommand(pi: ExtensionAPI, state: HookExtensionState): void
     description: 'Show or reload project .agents/hooks.json hooks',
     handler: async (args, ctx) => {
       if (args.trim() === 'reload') {
-        state.runtime = await loadHookRuntime(ctx.cwd);
+        if (!(await reloadRuntime(state, ctx))) return;
+      } else {
+        await validateHookRuntime(state.runtime, ctx);
+      }
+      if (state.runtime.disabledReason || state.runtime.loadError) {
+        reportHooksDisabled(
+          ctx,
+          state.runtime.disabledReason ?? `Configuration load failed: ${state.runtime.loadError ?? ''}`
+        );
+        return;
       }
       notifyUser(ctx, formatRuntimeSummary(state.runtime, ctx.cwd), state.runtime.loadError ? 'warning' : 'info');
     }
   });
 }
 
+function resetRuntime(state: HookExtensionState): void {
+  state.loadController?.abort();
+  disableHooks(state.runtime, 'Session ended or hooks reloaded.');
+  state.runtime = { hooks: {} };
+  state.stopHookFollowUpActive = false;
+}
+
+async function reloadRuntime(state: HookExtensionState, ctx: ExtensionContext): Promise<boolean> {
+  resetRuntime(state);
+  const controller = new AbortController();
+  state.loadController = controller;
+  const runtime = await loadHookRuntime(ctx, controller);
+  if (controller.signal.aborted) return false;
+  state.runtime = runtime;
+  return true;
+}
+
 function notifyLoadResult(runtime: HookRuntime, ctx: ExtensionContext): void {
+  if (runtime.disabledReason) {
+    reportHooksDisabled(ctx, runtime.disabledReason);
+    return;
+  }
   if (runtime.loadError) {
-    notifyUser(ctx, `Failed to load ${runtime.hooksFile ?? '<unknown file>'}: ${runtime.loadError}`, 'warning');
+    reportHooksDisabled(ctx, `Failed to load ${runtime.hooksFile ?? '<unknown file>'}: ${runtime.loadError}`);
     return;
   }
 

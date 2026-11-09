@@ -3,6 +3,7 @@ import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, formatSize, truncateTail } from '
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { setExtensionStatus } from '../internals/index.js';
 import { getErrorMessage } from './hooks-config.js';
+import { isHookContextCurrent, validateHookRuntime } from './hook-trust.js';
 import type { HookCommand, HookEventName, HookGroup, HookRuntime } from './hooks-config.js';
 
 const STATUS_KEY = 'agents-hooks';
@@ -46,14 +47,15 @@ export interface HookCommandResult {
 }
 
 export async function runMatchingHooks(options: RunHookOptions): Promise<HookCommandResult[]> {
+  if (!(await validateHookRuntime(options.runtime, options.ctx))) return [];
   const results: HookCommandResult[] = [];
 
   try {
-    for (const hook of (options.runtime.hooks[options.eventName] ?? [])
-      .filter(group => matchesHookGroup(group, options.matcherTarget))
-      .flatMap(group => group.hooks)) {
+    for (const hook of getMatchingHooks(options)) {
+      if (!(await validateHookRuntime(options.runtime, options.ctx))) return [];
       setHookStatus(hook.statusMessage, options.ctx);
       const result = await runCommandHook(hook, options);
+      if (!result || !(await validateHookRuntime(options.runtime, options.ctx))) return [];
       results.push(result);
       if (options.stopAfterBlockingPreHook && isBlockingPreToolResult(result)) return results;
     }
@@ -62,6 +64,12 @@ export async function runMatchingHooks(options: RunHookOptions): Promise<HookCom
   } finally {
     setHookStatus(undefined, options.ctx);
   }
+}
+
+function getMatchingHooks({ runtime, eventName, matcherTarget }: RunHookOptions): HookCommand[] {
+  return (runtime.hooks[eventName] ?? [])
+    .filter(group => matchesHookGroup(group, matcherTarget))
+    .flatMap(group => group.hooks);
 }
 
 function setHookStatus(message: string | undefined, ctx: ExtensionContext): void {
@@ -89,9 +97,34 @@ interface HookRunState {
   aborted: boolean;
 }
 
-function buildHookProcessEnv(cwd: string): NodeJS.ProcessEnv {
+const HOOK_ENV_NAMES = [
+  'PATH',
+  'HOME',
+  'USER',
+  'LOGNAME',
+  'TMPDIR',
+  'TMP',
+  'TEMP',
+  'LANG',
+  'LC_ALL',
+  'LC_CTYPE',
+  'TZ',
+  'SystemRoot',
+  'SYSTEMROOT',
+  'WINDIR'
+];
+
+/** Only named host opt-ins supplement the basic executable, home, temp, and locale environment. */
+export function createHookProcessEnv(cwd: string, source: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  const optIns = (source['PI_HOOKS_ENV_ALLOW'] ?? '').split(',').map(name => name.trim());
+  const names = [...HOOK_ENV_NAMES, ...optIns].filter(
+    name => /^[A-Za-z_][A-Za-z0-9_]*$/.test(name) && !/^(BASH_ENV|ENV|SHELLOPTS|BASHOPTS|BASH_FUNC_.*)$/.test(name)
+  );
+  const inherited = Object.fromEntries(
+    names.filter(name => source[name] !== undefined).map(name => [name, source[name]])
+  );
   return {
-    ...process.env,
+    ...inherited,
     AGENTS_PROJECT_DIR: cwd,
     CODEX_PROJECT_DIR: cwd,
     CODEX_WORKSPACE_ROOT: cwd,
@@ -101,9 +134,9 @@ function buildHookProcessEnv(cwd: string): NodeJS.ProcessEnv {
 }
 
 function spawnHookProcess(hook: HookCommand, cwd: string): ChildProcessWithoutNullStreams {
-  return spawn('bash', ['-c', hook.command], {
+  return spawn('bash', ['--noprofile', '--norc', '-c', hook.command], {
     cwd,
-    env: buildHookProcessEnv(cwd),
+    env: createHookProcessEnv(cwd),
     detached: process.platform !== 'win32',
     stdio: ['pipe', 'pipe', 'pipe']
   });
@@ -174,20 +207,24 @@ function createHookFinishHandler(options: CreateHookFinishHandlerOptions): (code
   };
 }
 
-async function runCommandHook(hook: HookCommand, options: RunHookOptions): Promise<HookCommandResult> {
-  const cwd = options.runtime.projectRoot ?? options.ctx.cwd;
+async function runCommandHook(hook: HookCommand, options: RunHookOptions): Promise<HookCommandResult | undefined> {
+  const authorization = options.runtime.authorization;
+  if (!authorization || !isHookContextCurrent(authorization, options.ctx)) return undefined;
+  const signal = AbortSignal.any([authorization.controller.signal, ...(options.signal ? [options.signal] : [])]);
+  if (signal.aborted) return undefined;
+  const cwd = authorization.projectRoot;
 
   return new Promise<HookCommandResult>(resolveResult => {
     const state: HookRunState = { settled: false, timedOut: false, aborted: false };
     const child = spawnHookProcess(hook, cwd);
     const output = collectHookProcessOutput(child);
-    const handles = wireHookTimeoutAndAbort({ child, hook, signal: options.signal, state });
+    const handles = wireHookTimeoutAndAbort({ child, hook, signal, state });
     const finish = createHookFinishHandler({
       eventName: options.eventName,
       hook,
       state,
       handles,
-      signal: options.signal,
+      signal,
       output,
       resolveResult
     });

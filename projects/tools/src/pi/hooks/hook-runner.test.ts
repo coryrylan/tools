@@ -1,24 +1,44 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import type { HookCommand, HookGroup, HookRuntime } from './hooks-config.js';
 import {
   createBasePayload,
+  createHookProcessEnv,
   formatHookFeedback,
   formatHookOutput,
   getHookToolName,
   isBlockingPreToolResult,
   isFailedHookResult,
   matchesHookGroup,
-  runMatchingHooks,
+  runMatchingHooks as runHooks,
+  type RunHookOptions,
   type HookCommandResult
 } from './hook-runner.js';
+
+let fixtureRoot = '/repo';
+
+async function runMatchingHooks(options: RunHookOptions): Promise<HookCommandResult[]> {
+  options.runtime.projectRoot = fixtureRoot;
+  options.runtime.hooksFile = join(fixtureRoot, '.agents/hooks.json');
+  options.runtime.authorization = {
+    cwd: options.ctx.cwd,
+    projectRoot: fixtureRoot,
+    sessionId: options.ctx.sessionManager.getSessionId(),
+    controller: new AbortController()
+  };
+  return runHooks(options);
+}
 
 /** Minimal fake `ExtensionContext`, cast narrowly - only the fields hook-runner.ts reads are provided. */
 function createFakeContext(
   overrides: Partial<{ cwd: string; hasUI: boolean; sessionId: string }> = {}
 ): ExtensionContext {
   return {
-    cwd: overrides.cwd ?? process.cwd(),
+    cwd: overrides.cwd ?? fixtureRoot,
+    isProjectTrusted: () => true,
     hasUI: overrides.hasUI ?? false,
     signal: undefined,
     sessionManager: {
@@ -182,7 +202,118 @@ describe('formatHookFeedback', () => {
   });
 });
 
+describe('createHookProcessEnv', () => {
+  it('should retain required variables and exclude synthetic credentials and runtime injection', () => {
+    const env = createHookProcessEnv('/project', {
+      PATH: '/synthetic/bin',
+      HOME: '/synthetic/home',
+      TMPDIR: '/synthetic/tmp',
+      LANG: 'en_US.UTF-8',
+      ANTHROPIC_API_KEY: 'synthetic-anthropic-secret',
+      AWS_SECRET_ACCESS_KEY: 'synthetic-aws-secret',
+      NPM_TOKEN: 'synthetic-npm-secret',
+      SSH_AUTH_SOCK: '/synthetic/ssh-agent',
+      BASH_ENV: '/synthetic/startup.sh',
+      NODE_OPTIONS: '--require=/synthetic/startup.js',
+      LD_PRELOAD: '/synthetic/library.so'
+    });
+
+    expect(env).toEqual({
+      PATH: '/synthetic/bin',
+      HOME: '/synthetic/home',
+      TMPDIR: '/synthetic/tmp',
+      LANG: 'en_US.UTF-8',
+      AGENTS_PROJECT_DIR: '/project',
+      CODEX_PROJECT_DIR: '/project',
+      CODEX_WORKSPACE_ROOT: '/project',
+      WORKSPACE_ROOT: '/project',
+      PROJECT_DIR: '/project'
+    });
+  });
+
+  it('should inherit only explicitly named opt-ins and never inherit shell startup or exported functions', () => {
+    const env = createHookProcessEnv('/project', {
+      PI_HOOKS_ENV_ALLOW: ' CI, NPM_TOKEN, BASH_ENV, ENV, SHELLOPTS, BASHOPTS, BASH_FUNC_test%%, invalid-name ',
+      CI: 'true',
+      NPM_TOKEN: 'synthetic-opted-in-secret',
+      BASH_ENV: '/synthetic/startup.sh',
+      ENV: '/synthetic/startup.sh',
+      SHELLOPTS: 'xtrace',
+      BASHOPTS: 'extdebug',
+      'BASH_FUNC_test%%': '() { echo injected; }',
+      'invalid-name': 'invalid',
+      OTHER_SECRET: 'synthetic-excluded-secret'
+    });
+
+    expect(env['CI']).toBe('true');
+    expect(env['NPM_TOKEN']).toBe('synthetic-opted-in-secret');
+    expect(Object.keys(env).sort()).toEqual([
+      'AGENTS_PROJECT_DIR',
+      'CI',
+      'CODEX_PROJECT_DIR',
+      'CODEX_WORKSPACE_ROOT',
+      'NPM_TOKEN',
+      'PROJECT_DIR',
+      'WORKSPACE_ROOT'
+    ]);
+  });
+});
+
 describe('runMatchingHooks', () => {
+  beforeEach(() => {
+    fixtureRoot = realpathSync(mkdtempSync(join(tmpdir(), 'hook-runner-')));
+    mkdirSync(join(fixtureRoot, '.agents'));
+    writeFileSync(join(fixtureRoot, '.agents/hooks.json'), '{}');
+    vi.stubEnv('PATH', '/usr/bin:/bin');
+    vi.stubEnv('HOME', fixtureRoot);
+    vi.stubEnv('TMPDIR', fixtureRoot);
+    vi.stubEnv('PI_HOOKS_ENV_ALLOW', '');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    rmSync(fixtureRoot, { recursive: true, force: true });
+  });
+
+  it('should not execute a runtime with no authorization', async () => {
+    const ctx = createFakeContext();
+    const runtime: HookRuntime = { hooks: { Stop: [{ hooks: [createHookCommand({ command: 'exit 9' })] }] } };
+
+    await expect(
+      runHooks({
+        eventName: 'Stop',
+        matcherTarget: 'Stop',
+        payload: createBasePayload({ eventName: 'Stop', ctx, runtime }),
+        runtime,
+        ctx
+      })
+    ).resolves.toEqual([]);
+  });
+
+  it('should exclude synthetic secrets and BASH_ENV from real child processes', async () => {
+    const startup = join(fixtureRoot, 'startup.sh');
+    writeFileSync(startup, 'printf startup-was-sourced');
+    vi.stubEnv('BASH_ENV', startup);
+    vi.stubEnv('SYNTHETIC_SECRET', 'never-inherit-this');
+    const ctx = createFakeContext();
+    const runtime: HookRuntime = {
+      hooks: {
+        Stop: [{ hooks: [createHookCommand({ command: 'printf "%s|%s|%s" "$SYNTHETIC_SECRET" "$BASH_ENV" "$HOME"' })] }]
+      }
+    };
+
+    const [result] = await runMatchingHooks({
+      eventName: 'Stop',
+      matcherTarget: 'Stop',
+      payload: createBasePayload({ eventName: 'Stop', ctx, runtime }),
+      runtime,
+      ctx
+    });
+
+    expect(result?.stdout).toBe(`||${fixtureRoot}`);
+    expect(result?.code).toBe(0);
+  });
+
   it('should inherit PATH without starting a login shell', async () => {
     const ctx = createFakeContext();
     const runtime: HookRuntime = {

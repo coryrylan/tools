@@ -1,24 +1,36 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { findHooksFile } from './hook-trust.js';
 import {
   asRecord,
   DEFAULT_TIMEOUT_SECONDS,
-  findHooksFile,
   getErrorMessage,
   isDefined,
   loadHookRuntime,
   parseHooksJson
 } from './hooks-config.js';
 
-const scratchRoot = resolve(import.meta.dirname, '../../../node_modules/.cache/coryrylan-tools-tests');
+const scratchRoot = tmpdir();
+
+function createContext(cwd: string): ExtensionContext {
+  return {
+    cwd,
+    mode: 'print',
+    hasUI: false,
+    isProjectTrusted: () => true,
+    sessionManager: { getSessionId: () => 'config-test' }
+  } as unknown as ExtensionContext;
+}
 
 describe('findHooksFile', () => {
   let projectRoot: string;
 
   beforeEach(() => {
     mkdirSync(scratchRoot, { recursive: true });
-    projectRoot = mkdtempSync(join(scratchRoot, 'find-hooks-file-'));
+    projectRoot = realpathSync(mkdtempSync(join(scratchRoot, 'find-hooks-file-')));
   });
 
   afterEach(() => {
@@ -29,33 +41,73 @@ describe('findHooksFile', () => {
     mkdirSync(join(projectRoot, '.agents'), { recursive: true });
     writeFileSync(join(projectRoot, '.agents/hooks.json'), '{}');
 
-    await expect(findHooksFile(projectRoot)).resolves.toBe(join(projectRoot, '.agents/hooks.json'));
+    await expect(findHooksFile(projectRoot)).resolves.toEqual({ path: join(projectRoot, '.agents/hooks.json') });
   });
 
-  it('should walk up parent directories to find .agents/hooks.json', async () => {
+  it('should not discover parent hooks when only the child working directory is trusted', async () => {
     mkdirSync(join(projectRoot, '.agents'), { recursive: true });
     writeFileSync(join(projectRoot, '.agents/hooks.json'), '{}');
     const nestedCwd = join(projectRoot, 'packages/app/src');
     mkdirSync(nestedCwd, { recursive: true });
 
-    await expect(findHooksFile(nestedCwd)).resolves.toBe(join(projectRoot, '.agents/hooks.json'));
+    await expect(findHooksFile(nestedCwd)).resolves.toEqual({});
   });
 
-  it('should return undefined when no ancestor directory has .agents/hooks.json', async () => {
+  it('should return no path when the working directory has no hooks.json', async () => {
     const nestedCwd = join(projectRoot, 'no-hooks-here');
     mkdirSync(nestedCwd, { recursive: true });
 
-    await expect(findHooksFile(nestedCwd)).resolves.toBeUndefined();
+    await expect(findHooksFile(nestedCwd)).resolves.toEqual({});
+  });
+});
+
+describe('canonical hook boundaries', () => {
+  let directory: string;
+
+  beforeEach(() => {
+    directory = realpathSync(mkdtempSync(join(scratchRoot, 'hook-boundary-')));
+  });
+
+  afterEach(() => {
+    rmSync(directory, { recursive: true, force: true });
+  });
+
+  it('should reject sibling-prefix symlinks rather than using a string-prefix boundary check', async () => {
+    const project = join(directory, 'project');
+    const sibling = join(directory, 'project-other');
+    mkdirSync(join(project, '.agents'), { recursive: true });
+    mkdirSync(sibling);
+    writeFileSync(join(sibling, 'hooks.json'), '{}');
+    symlinkSync(join(sibling, 'hooks.json'), join(project, '.agents/hooks.json'));
+
+    const resolution = await findHooksFile(project);
+
+    expect(resolution.path).toBeUndefined();
+    expect(resolution.disabledReason).toContain('outside the trusted');
+  });
+
+  it('should permit configuration symlinks that stay within the trusted boundary', async () => {
+    mkdirSync(join(directory, '.agents'));
+    writeFileSync(join(directory, 'hooks.json'), '{}');
+    symlinkSync(join(directory, 'hooks.json'), join(directory, '.agents/hooks.json'));
+
+    await expect(findHooksFile(directory)).resolves.toEqual({ path: join(directory, 'hooks.json') });
   });
 });
 
 describe('loadHookRuntime', () => {
   let projectRoot: string;
 
+  afterEach(() => vi.unstubAllEnvs());
+
   beforeEach(() => {
     mkdirSync(scratchRoot, { recursive: true });
-    projectRoot = mkdtempSync(join(scratchRoot, 'load-hook-runtime-'));
+    projectRoot = realpathSync(mkdtempSync(join(scratchRoot, 'load-hook-runtime-')));
     mkdirSync(join(projectRoot, '.agents'), { recursive: true });
+    const agentDir = join(projectRoot, 'agent');
+    mkdirSync(agentDir);
+    writeFileSync(join(agentDir, 'trust.json'), JSON.stringify({ [projectRoot]: true }));
+    vi.stubEnv('PI_CODING_AGENT_DIR', agentDir);
   });
 
   afterEach(() => {
@@ -72,7 +124,7 @@ describe('loadHookRuntime', () => {
       })
     );
 
-    const runtime = await loadHookRuntime(projectRoot);
+    const runtime = await loadHookRuntime(createContext(projectRoot));
 
     expect(runtime.hooksFile).toBe(join(projectRoot, '.agents/hooks.json'));
     expect(runtime.projectRoot).toBe(projectRoot);
@@ -85,7 +137,7 @@ describe('loadHookRuntime', () => {
   it('should set loadError and empty hooks when hooks.json is malformed JSON', async () => {
     writeFileSync(join(projectRoot, '.agents/hooks.json'), '{ not valid json');
 
-    const runtime = await loadHookRuntime(projectRoot);
+    const runtime = await loadHookRuntime(createContext(projectRoot));
 
     expect(runtime.hooksFile).toBe(join(projectRoot, '.agents/hooks.json'));
     expect(runtime.loadError).toBeTruthy();
@@ -95,7 +147,7 @@ describe('loadHookRuntime', () => {
   it('should return an empty runtime with no hooksFile when nothing is found', async () => {
     const bareDir = mkdtempSync(join(scratchRoot, 'no-manifest-'));
 
-    const runtime = await loadHookRuntime(bareDir);
+    const runtime = await loadHookRuntime(createContext(bareDir));
 
     expect(runtime).toEqual({ hooks: {} });
     rmSync(bareDir, { recursive: true, force: true });
