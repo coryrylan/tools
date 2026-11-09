@@ -109,12 +109,24 @@ const HOOK_ENV_NAMES = [
   'LC_ALL',
   'LC_CTYPE',
   'TZ',
+  'XDG_CACHE_HOME',
+  'XDG_CONFIG_HOME',
+  'XDG_CONFIG_DIRS',
+  'XDG_DATA_HOME',
+  'XDG_DATA_DIRS',
+  'XDG_STATE_HOME',
+  'XDG_RUNTIME_DIR',
+  'MISE_CACHE_DIR',
+  'MISE_CONFIG_DIR',
+  'MISE_DATA_DIR',
+  'MISE_STATE_DIR',
+  'MISE_TMP_DIR',
   'SystemRoot',
   'SYSTEMROOT',
   'WINDIR'
 ];
 
-/** Only named host opt-ins supplement the basic executable, home, temp, and locale environment. */
+/** Preserves basic process settings and runtime-directory overrides; other variables require named host opt-ins. */
 export function createHookProcessEnv(cwd: string, source: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
   const optIns = (source['PI_HOOKS_ENV_ALLOW'] ?? '').split(',').map(name => name.trim());
   const names = [...HOOK_ENV_NAMES, ...optIns].filter(

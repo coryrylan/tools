@@ -213,6 +213,11 @@ describe('createHookProcessEnv', () => {
       AWS_SECRET_ACCESS_KEY: 'synthetic-aws-secret',
       NPM_TOKEN: 'synthetic-npm-secret',
       SSH_AUTH_SOCK: '/synthetic/ssh-agent',
+      MISE_GITHUB_TOKEN: 'synthetic-mise-secret',
+      MISE_TRUSTED_CONFIG_PATHS: '/synthetic/trusted',
+      MISE_YES: '1',
+      __MISE_DIFF: 'synthetic-serialized-environment-secret',
+      XDG_SYNTHETIC_SECRET: 'synthetic-xdg-secret',
       BASH_ENV: '/synthetic/startup.sh',
       NODE_OPTIONS: '--require=/synthetic/startup.js',
       LD_PRELOAD: '/synthetic/library.so'
@@ -229,6 +234,25 @@ describe('createHookProcessEnv', () => {
       WORKSPACE_ROOT: '/project',
       PROJECT_DIR: '/project'
     });
+  });
+
+  it('should preserve XDG and mise runtime directory overrides', () => {
+    const directories = {
+      XDG_CACHE_HOME: '/synthetic/xdg/cache',
+      XDG_CONFIG_HOME: '/synthetic/xdg/config',
+      XDG_CONFIG_DIRS: '/synthetic/xdg/config-search',
+      XDG_DATA_HOME: '/synthetic/xdg/data',
+      XDG_DATA_DIRS: '/synthetic/xdg/data-search',
+      XDG_STATE_HOME: '/synthetic/xdg/state',
+      XDG_RUNTIME_DIR: '/synthetic/xdg/runtime',
+      MISE_CACHE_DIR: '/synthetic/mise/cache',
+      MISE_CONFIG_DIR: '/synthetic/mise/config',
+      MISE_DATA_DIR: '/synthetic/mise/data',
+      MISE_STATE_DIR: '/synthetic/mise/state',
+      MISE_TMP_DIR: '/synthetic/mise/tmp'
+    };
+
+    expect(createHookProcessEnv('/project', directories)).toMatchObject(directories);
   });
 
   it('should inherit only explicitly named opt-ins and never inherit shell startup or exported functions', () => {
@@ -312,6 +336,52 @@ describe('runMatchingHooks', () => {
 
     expect(result?.stdout).toBe(`||${fixtureRoot}`);
     expect(result?.code).toBe(0);
+  });
+
+  it('should pass runtime directory overrides to child processes without mise secrets or trust overrides', async () => {
+    const cacheDirectory = join(fixtureRoot, 'mise-cache');
+    const configDirectory = join(fixtureRoot, 'mise-config');
+    const xdgCacheDirectory = join(fixtureRoot, 'xdg-cache');
+    vi.stubEnv('MISE_CACHE_DIR', cacheDirectory);
+    vi.stubEnv('MISE_CONFIG_DIR', configDirectory);
+    vi.stubEnv('XDG_CACHE_HOME', xdgCacheDirectory);
+    vi.stubEnv('MISE_GITHUB_TOKEN', 'synthetic-mise-secret');
+    vi.stubEnv('MISE_TRUSTED_CONFIG_PATHS', '/synthetic/trusted');
+    vi.stubEnv('__MISE_DIFF', 'synthetic-serialized-environment-secret');
+    const ctx = createFakeContext();
+    const runtime: HookRuntime = {
+      hooks: {
+        SessionStart: [
+          {
+            hooks: [
+              createHookCommand({
+                command:
+                  'printf "%s\\n" "$MISE_CACHE_DIR" "$MISE_CONFIG_DIR" "$XDG_CACHE_HOME" "${MISE_GITHUB_TOKEN-unset}" "${MISE_TRUSTED_CONFIG_PATHS-unset}" "${__MISE_DIFF-unset}"'
+              })
+            ]
+          }
+        ]
+      }
+    };
+
+    const [result] = await runMatchingHooks({
+      eventName: 'SessionStart',
+      matcherTarget: 'startup',
+      payload: createBasePayload({ eventName: 'SessionStart', ctx, runtime }),
+      runtime,
+      ctx
+    });
+
+    expect(result?.code).toBe(0);
+    expect(result?.stdout.split('\n')).toEqual([
+      cacheDirectory,
+      configDirectory,
+      xdgCacheDirectory,
+      'unset',
+      'unset',
+      'unset',
+      ''
+    ]);
   });
 
   it('should inherit PATH without starting a login shell', async () => {

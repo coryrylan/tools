@@ -98,6 +98,13 @@ The loader checks only the canonical working directory's `.agents/hooks.json`. I
 
 Commands use non-login `bash --noprofile --norc -c` with a filtered environment, not the full Pi environment. Host-controlled `PI_HOOKS_ENV_ALLOW` can opt in extra variable names. Hooks execute directly, outside agent tool-call guards, with Pi's OS permissions. Trust and environment filtering do not replace OS isolation.
 
+The default allowlist preserves executable paths, home/user directories, temporary directories, locale, and system-directory variables. It also preserves these runtime-directory overrides so toolchains use the same paths as the host, including writable caches when an agent runs in a sandbox:
+
+- XDG: `XDG_CACHE_HOME`, `XDG_CONFIG_HOME`, `XDG_CONFIG_DIRS`, `XDG_DATA_HOME`, `XDG_DATA_DIRS`, `XDG_STATE_HOME`, and `XDG_RUNTIME_DIR`.
+- mise: `MISE_CACHE_DIR`, `MISE_CONFIG_DIR`, `MISE_DATA_DIR`, `MISE_STATE_DIR`, and `MISE_TMP_DIR`.
+
+The extension copies only these named variables, not every `MISE_*` or `XDG_*` variable. Credentials, mise trust overrides, serialized shell environment state, and shell-startup injection variables stay out of the default environment. Other toolchain settings require explicit host opt-ins, for example `PI_HOOKS_ENV_ALLOW=CI,MISE_ENV pi`. `BASH_ENV`, `ENV`, `SHELLOPTS`, `BASHOPTS`, and exported Bash functions remain excluded even with an opt-in.
+
 Example `.agents/hooks.json`:
 
 ```json
