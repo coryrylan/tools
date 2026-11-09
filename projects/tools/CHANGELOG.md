@@ -1,3 +1,9 @@
+## [1.5.1](https://github.com/coryrylan/tools/compare/tools-v1.5.0...tools-v1.5.1) (2026-11-09)
+
+### Bug Fixes
+
+* **tools:** hooks permissions ([eca2127](https://github.com/coryrylan/tools/commit/eca2127b312da56d6e6da4b81a47328cf4ee3e20))
+
 ## [1.5.0](https://github.com/coryrylan/tools/compare/tools-v1.4.0...tools-v1.5.0) (2026-10-30)
 
 ### Features
