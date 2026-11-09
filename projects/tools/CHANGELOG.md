@@ -1,3 +1,9 @@
+## [1.5.2](https://github.com/coryrylan/tools/compare/tools-v1.5.1...tools-v1.5.2) (2026-11-09)
+
+### Bug Fixes
+
+* **tools:** enhance environment variable handling for runtime directory overrides ([b0d2e29](https://github.com/coryrylan/tools/commit/b0d2e296414021739f719e587541b46eb375af26))
+
 ## [1.5.1](https://github.com/coryrylan/tools/compare/tools-v1.5.0...tools-v1.5.1) (2026-11-09)
 
 ### Bug Fixes
